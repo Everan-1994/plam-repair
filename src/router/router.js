@@ -67,46 +67,31 @@ export const otherRouter = {
 // 作为Main组件的子页面展示并且在左侧菜单显示的路由写在appRouter里
 export const appRouter = [
     {
-        path: '/access',
-        icon: 'key',
-        name: 'access',
-        title: '权限管理',
-        component: Main,
-        children: [
-            { path: 'index', title: '权限管理', name: 'access_index', component: () => import('@/views/access/access.vue') }
-        ]
-    },
-    {
-        path: '/access-test',
+        path: '/users',
         icon: 'lock-combination',
-        title: '权限测试页',
-        name: 'accesstest',
+        title: '用户管理',
+        name: 'users',
         access: 0,
         component: Main,
         children: [
-            { path: 'index', title: '权限测试页', name: 'accesstest_index', access: 0, component: () => import('@/views/access/access-test.vue') }
+            { path: 'customers', title: '客户管理', name: 'customers_index', access: 0, component: () => import('@/views/users/customers.vue') },
+            { path: 'admins', title: '管理员', name: 'admins_index', access: 0, component: () => import('@/views/users/admins.vue') },
+            { path: 'repairmans', title: '维修员', name: 'repairmans_index', access: 0, component: () => import('@/views/users/repairmans.vue') },
+            { path: 'members', title: '用户管理', name: 'members_index', access: 0, component: () => import('@/views/users/members.vue') }
         ]
     },
     {
-        path: '/international',
-        icon: 'earth',
-        title: {i18n: 'international'},
-        name: 'international',
+        path: '/orders',
+        icon: 'android-sad',
+        title: '工单管理',
+        name: 'orders',
         component: Main,
         children: [
-            { path: 'index', title: {i18n: 'international'}, name: 'international_index', component: () => import('@/views/international/international.vue') }
-        ]
-    },
-    {
-        path: '/form',
-        icon: 'android-checkbox',
-        name: 'form',
-        title: '表单编辑',
-        component: Main,
-        children: [
-            { path: 'artical-publish', title: '文章发布', name: 'artical-publish', icon: 'compose', component: () => import('@/views/form/article-publish/article-publish.vue') },
-            { path: 'workflow', title: '工作流', name: 'workflow', icon: 'arrow-swap', component: () => import('@/views/form/work-flow/work-flow.vue') }
-
+            { path: 'to-be-repaired', title: '待维修', name: 'to-be-repaired_index', component: () => import('@/views/orders/to-be-repaired.vue') },
+            { path: 'repairing', title: '维修中', name: 'repairing_index', component: () => import('@/views/orders/repairing.vue') },
+            { path: 'repaired', title: '已维修', name: 'repaired_index', component: () => import('@/views/orders/repaired.vue') },
+            { path: 'dismissed', title: '已驳回', name: 'dismissed_index', component: () => import('@/views/orders/dismissed.vue') },
+            { path: 'appealing', title: '申述管理', name: 'appealing_index', component: () => import('@/views/orders/appealing.vue') },
         ]
     },
     {

@@ -51,9 +51,9 @@
 
 <script>
     import axios from 'axios';
-//    import JWT from '../helpers/jwt';
-//    import {path} from '../helpers/path';
-//    import Cookies from 'js-cookie';
+    import JWT from '../helpers/jwt';
+    import {path} from '../helpers/path';
+    import Cookies from 'js-cookie';
 
     export default {
         data () {
@@ -81,7 +81,7 @@
         },
         mounted() {
             this.default_src = this.$refs.captcha.src;
-            // this.codeInit();
+            this.codeInit();
         },
         methods: {
             handleSubmit () {

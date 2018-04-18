@@ -1,14 +1,14 @@
 <template>
   <div>
     <Card shadow>
-      <p>当前用户的权限值是 0 时，才可以看到这个页面。</p>
+      <p>待维修</p>
     </Card>
   </div>
 </template>
 
 <script>
 export default {
-
+    name: 'to_be_repaired',
 };
 </script>
 
