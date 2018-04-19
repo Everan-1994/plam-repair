@@ -78,7 +78,10 @@
     import Cookies from 'js-cookie';
     import util from '@/libs/util.js';
     import scrollBar from '@/views/my-components/scroll-bar/vue-scroller-bars';
-    
+    import axios from 'axios';
+    import JWT from '../helpers/jwt';
+    import {path} from '../helpers/path';
+
     export default {
         components: {
             shrinkableMenu,
@@ -148,10 +151,29 @@
                     });
                 } else if (name === 'loginout') {
                     // 退出登录
-                    this.$store.commit('logout', this);
-                    this.$store.commit('clearOpenedSubmenu');
-                    this.$router.push({
-                        name: 'login'
+                    this.$Modal.confirm({
+                        title: '温馨提示',
+                        content: '<p>确定要退出系统吗？</p>',
+                        loading: true,
+                        onOk: () => {
+                            axios.delete(path + '/api/logout').then(response => {
+                                this.$Modal.remove();
+                                JWT.removeToken();
+                                this.$store.commit('logout', this);
+                                this.$store.commit('clearOpenedSubmenu');
+                                this.$router.push({
+                                    name: 'login'
+                                });
+                            }).catch(error => {
+                                this.$Modal.remove();
+                                JWT.removeToken();
+                                this.$store.commit('logout', this);
+                                this.$store.commit('clearOpenedSubmenu');
+                                this.$router.push({
+                                    name: 'login'
+                                });
+                            });
+                        }
                     });
                 }
             },

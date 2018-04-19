@@ -22,7 +22,7 @@
                     <Table :columns="columns" :data="schools" :loading="loading"></Table>
                     <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
                         <div style="float: right;">
-                            <Page :total="count"
+                            <Page :total="total"
                                   :current="page"
                                   :page-size="pageSize"
                                   @on-change="changePage"
@@ -39,7 +39,7 @@
             </Card>
             </Col>
         </Row>
-        <Modal title="新增学校" v-model="addModal" :mask-closable="false" width="400" @on-cancel="resetAddModel">
+        <Modal title="新增学校" v-model="addModal" :mask-closable="false" width="400" @on-cancel="closeModal('addForm')">
             <div>
                 <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
                     <Form-item label="学校名称" prop="school_name">
@@ -61,7 +61,7 @@
                                     :headers="headers"
                                     :show-upload-list="false"
                             >
-                                <img src="../../images/logo.jpg" alt=""
+                                <img src="../../images/view.png" alt=""
                                      style="max-width: 240px; max-height: 180px; border-radius: 3px; margin-right: 10px; border: 1px dashed #2d8bf0;"
                                      ref="addLogo">
                                 <input v-model="addForm.logo" type="hidden">
@@ -76,7 +76,7 @@
                     </Form-item>
                     <Form-item style="text-align: right;">
                         <Button type="primary" @click="handleSubmit('addForm')" icon="paper-airplane"
-                                :loading="addloading"> 提 交
+                                :loading="addOrEditloading"> 提 交
                         </Button>
                         <Button type="ghost" @click="handleReset('addForm')" style="margin-left: 8px">Reset</Button>
                     </Form-item>
@@ -96,7 +96,7 @@
         name: 'schools_index',
         data() {
             return {
-                count: 0,
+                total: 0,
                 page: 1,
                 pageSize: 10,
                 pageSizeOpts: [10, 20, 30, 50],
@@ -104,9 +104,8 @@
                 schools: [],
                 addModal: false,
                 editModal: false,
-                loading: false,
-                addloading: false,
-                editloading: false,
+                loading: true,
+                addOrEditloading: false,
                 aloading: false,
                 eloading: false,
                 zlogo: '',
@@ -146,7 +145,14 @@
                     {
                         key: 'logo',
                         title: '学校LOGO',
-                        align: 'center'
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('Avatar', {
+                                props: {
+                                    src: params.row.logo
+                                }
+                            });
+                        }
                     },
                     {
                         key: 'school_name',
@@ -157,13 +163,13 @@
                         key: 'school_code',
                         title: '学校代码',
                         align: 'center',
-                        width: 100,
                         render: (h, params) => {
                             return h('Tag', {
                                 props: {
-                                    color: params.row.school_code
+                                    type: 'dot',
+                                    color: 'green'
                                 }
-                            })
+                            }, params.row.school_code);
                         }
                     },
                     {
@@ -172,12 +178,23 @@
                         align: 'center',
                         width: 120,
                         render: (h, params) => {
-                            return h('Tag', {
+                            return h('i-switch', {
                                 props: {
-                                    type: 'dot',
-                                    color: params.row.status == 1 ? 'green' : 'red'
-                                }
-                            }, params.row.status == 1 ? '正常' : '禁用')
+                                    size: 'large',
+                                    value: params.row.status,
+                                    'true-value': 1,
+                                    'false-value': 2
+                                },
+                                scopedSlots: {
+                                    open: () => h('span', '正常'),
+                                    close: () => h('span', '禁用')
+                                },
+                                on: {
+                                    'on-change': (value) => {
+                                        this.changeWishStatus(params.row.id, value);
+                                    }
+                                },
+                            });
                         }
                     },
                     {
@@ -186,6 +203,23 @@
                         align: 'center',
                         render: (h, params) => {
                             return h('div', [
+                                h('Button', {
+                                    props: {
+                                        type: 'success',
+                                        size: 'small',
+                                        icon: 'ios-search-strong'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.id = params.row.id;
+                                            this.editModal = true;
+                                            this.getSchoolById(params.row.id);
+                                        }
+                                    }
+                                }, '详情'),
                                 h('Button', {
                                     props: {
                                         type: 'info',
@@ -199,7 +233,7 @@
                                         click: () => {
                                             this.id = params.row.id;
                                             this.editModal = true;
-                                            this.getCategoryById(params.row.id);
+                                            this.getSchoolById(params.row.id);
                                         }
                                     }
                                 }, '编辑'),
@@ -244,8 +278,10 @@
                     pageSize: this.pageSize
                 };
                 axios.get(path + '/api/school', {params}).then(response => {
-                    // console.log(response);
                     this.loading = false;
+                    this.schools = response.data.data;
+                    this.total = response.data.meta.total;
+                    this.total >= 10 ? this.showPage = true : this.showPage = false;
                 }).catch(error => {
                     console.log(error);
                 });
@@ -260,9 +296,12 @@
                 this.pageSize = value;
                 this.getSchoolList();
             },
+            getSchoolById() {
+
+            },
             handleSubmit(name) {
                 let _this = this;
-                _this.addloading = true;
+                _this.addOrEditloading = true;
                 _this.$refs[name].validate((valid) => {
                     if (valid) {
                         let formData = {
@@ -272,22 +311,21 @@
                             'status': _this.addForm.status,
                             'logo': _this.addForm.logo
                         };
-                        axios.post(path + 'school', formData).then(response => {
-                            _this.$Message.success('提交成功');
+                        axios.post(path + '/api/school', formData).then(response => {
+                            _this.$Message.success('新增成功');
                             setTimeout(function () {
-                                _this.addloading = false;
+                                _this.addOrEditloading = false;
                                 if (_this.id > 0) {
-                                    _this.closeEditModal();
                                     _this.$refs.editLogo.src = _this.zlogo;
                                 } else {
-                                    _this.closeAddModal();
                                     _this.$refs.addLogo.src = _this.zlogo;
                                 }
-                                _this.getCustomerList();
-                                _this.$refs[name].resetFields();
+                                _this.getSchoolList();
+                                _this.handleReset(name);
+                                _this.closeModal();
                             }, 1000);
                         }).catch(error => {
-                            _this.addloading = false;
+                            _this.addOrEditloading = false;
                             _this.$Message.error('系统出错，请稍后再试。');
                         })
                     }
@@ -297,8 +335,9 @@
                 this.$refs[name].resetFields();
                 this.$refs.addLogo.src = this.addForm.logo = this.zlogo;
             },
-            resetAddModel() {
-                this.handleReset('addForm');
+            closeModal(name) {
+                this.handleReset(name);
+                this.$Modal.remove();
             },
             handleError(error, file) {
                 this.$Notice.error({
@@ -353,6 +392,9 @@
                     title: '温馨提示',
                     desc: '图片： ' + file.name + ' 正在上传。'
                 });
+            },
+            changeWishStatus(id, value) {
+
             }
         }
     };
