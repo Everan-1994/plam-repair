@@ -8,7 +8,7 @@
 
 <script>
 export default {
-    name: 'members_index',
+    name: 'members',
 };
 </script>
 

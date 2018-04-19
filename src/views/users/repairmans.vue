@@ -8,7 +8,7 @@
 
 <script>
 export default {
-    name: 'repairmans_index',
+    name: 'repairmans',
 };
 </script>
 

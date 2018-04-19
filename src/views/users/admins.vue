@@ -8,7 +8,7 @@
 
 <script>
 export default {
-    name: 'admins_index',
+    name: 'admins',
 };
 </script>
 

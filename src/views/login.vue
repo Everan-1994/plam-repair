@@ -95,13 +95,13 @@
                 };
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
-                        axios.post(path + '/api/authorizations', formData).then(response => {
+                        axios.post(path + '/api/login', formData).then(response => {
                             let data = response.data;
                             JWT.setToken('Bearer ' + data.meta.access_token);
                             Cookies.set('user', data.data.name);
                             Cookies.set('password', _this.form.password);
-                            Cookies.set('access', data.data.level);
-                            _this.$store.commit('setAvator', 'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3448484253,3685836170&fm=27&gp=0.jpg');
+                            Cookies.set('access', data.data.identify);
+                            _this.$store.commit('setAvator', data.data.avatar);
                             _this.$Message.success({
                                 content: '登陆成功',
                                 onClose: () => {
@@ -110,7 +110,7 @@
                             });
                         }).catch(error => {
                             _this.loading = false;
-                            _this.$Message.error(error.response.data.message || '服务器异常');
+                            _this.$Message.error(error.response.data.message + '1' || '服务器异常');
                         });
                     } else {
                         _this.loading = false;
