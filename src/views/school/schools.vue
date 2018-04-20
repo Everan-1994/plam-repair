@@ -13,7 +13,7 @@
                 </p>
                 <Row>
                     <Col span="12">
-                        <span @click="addModal = true" style="margin: 0 10px;">
+                    <span @click="addModal = true" style="margin: 0 10px;">
                           <Button type="primary" icon="plus-round">新增学校</Button>
                         </span>
                     </Col>
@@ -39,14 +39,14 @@
             </Card>
             </Col>
         </Row>
-        <Modal title="新增学校" v-model="addModal" :mask-closable="false" width="400" @on-cancel="closeModal('addForm')">
+        <Modal title="新增学校" v-model="addModal" :mask-closable="false" width="400" @on-cancel="handleReset('addForm')">
             <div>
                 <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
                     <Form-item label="学校名称" prop="school_name">
-                        <Input v-model="addForm.school_name" placeholder="请输入学校名称" />
+                        <Input v-model="addForm.school_name" placeholder="请输入学校名称"/>
                     </Form-item>
                     <Form-item label="学校代码" prop="school_code">
-                        <Input v-model="addForm.school_code" placeholder="请输入学校代码" />
+                        <Input v-model="addForm.school_code" placeholder="请输入学校代码"/>
                     </Form-item>
                     <Form-item label="LOGO" prop="logo">
                         <div style="display: block;width: 100%;">
@@ -69,7 +69,7 @@
                         </div>
                     </Form-item>
                     <Form-item label="状态" prop="status">
-                        <i-switch v-model="addForm.status" size="large" :true-value="1" :false-value="2">
+                        <i-switch v-model="addForm.status" size="large" :true-value="1" :false-value="0">
                             <span slot="open">正常</span>
                             <span slot="close">冻结</span>
                         </i-switch>
@@ -79,6 +79,51 @@
                                 :loading="addOrEditloading"> 提 交
                         </Button>
                         <Button type="ghost" @click="handleReset('addForm')" style="margin-left: 8px">Reset</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+        <Modal title="编辑学校" v-model="editModal" :mask-closable="false" width="400" @on-cancel="handleReset('editForm')">
+            <div>
+                <Form ref="editForm" :model="editForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
+                    <Form-item label="学校名称" prop="school_name">
+                        <Input v-model="editForm.school_name" placeholder="请输入学校名称"/>
+                    </Form-item>
+                    <Form-item label="学校代码" prop="school_code">
+                        <Input v-model="editForm.school_code" placeholder="请输入学校代码"/>
+                    </Form-item>
+                    <Form-item label="LOGO" prop="logo">
+                        <div style="display: block;width: 100%;">
+                            <Upload
+                                    name="logo"
+                                    action="//repair-api.wei/api/upload/image"
+                                    :on-format-error="handleFormatError"
+                                    :on-progress="handleProgress"
+                                    :format="['jpg','jpeg','png']"
+                                    :on-success="handleSuccess"
+                                    :on-error="handleError"
+                                    :headers="headers"
+                                    :show-upload-list="false"
+                            >
+                                <img src="../../images/view.png" alt=""
+                                     style="max-width: 240px; max-height: 180px; border-radius: 3px; margin-right: 10px; border: 1px dashed #2d8bf0;"
+                                     ref="editLogo">
+                                <input v-model="editForm.logo" type="hidden">
+                            </Upload>
+                        </div>
+                    </Form-item>
+                    <Form-item label="状态" prop="status">
+                        <i-switch v-model="editForm.status" size="large" :true-value="1" :false-value="0">
+                            <span slot="open">正常</span>
+                            <span slot="close">冻结</span>
+                        </i-switch>
+                    </Form-item>
+                    <Form-item style="text-align: right;">
+                        <Button type="primary" @click="handleSubmit('editForm')" icon="paper-airplane"
+                                :loading="addOrEditloading"> 提 交
+                        </Button>
+                        <Button type="ghost" @click="handleReset('editForm')" style="margin-left: 8px">Reset</Button>
                     </Form-item>
                 </Form>
             </div>
@@ -245,7 +290,7 @@
                                     },
                                     on: {
                                         'on-ok': () => {
-                                            this.deleteCategoryById(params.row.id, params.index)
+                                            this.deleteSchool(params.row.id, params.index)
                                         }
                                     }
                                 }, [
@@ -297,47 +342,69 @@
                 this.getSchoolList();
             },
             getSchoolById() {
-
+                axios.get(path + `/api/school/${this.id}`).then(response => {
+                    let school = response.data;
+                    this.editForm.school_name = school.school_name;
+                    this.editForm.school_code = school.school_code;
+                    this.editForm.status = school.status;
+                    this.editForm.logo = school.logo;
+                    this.$refs.editLogo.src = school.logo;
+                }).catch(error => {
+                    console.log(error);
+                })
             },
             handleSubmit(name) {
                 let _this = this;
                 _this.addOrEditloading = true;
                 _this.$refs[name].validate((valid) => {
                     if (valid) {
-                        let formData = {
-                            'id': _this.id,
-                            'school_name': _this.addForm.school_name,
-                            'school_code': _this.addForm.school_code,
-                            'status': _this.addForm.status,
-                            'logo': _this.addForm.logo
-                        };
-                        axios.post(path + '/api/school', formData).then(response => {
-                            _this.$Message.success('新增成功');
-                            setTimeout(function () {
+                        if (_this.id > 0) {
+                            let formData = {
+                                'school_name': _this.editForm.school_name,
+                                'school_code': _this.editForm.school_code,
+                                'status': _this.editForm.status,
+                                'logo': _this.editForm.logo
+                            };
+                            axios.patch(path + `/api/school/${this.id}`, formData).then(response => {
+                                _this.$Message.success('更新成功');
+                                setTimeout(function () {
+                                    _this.addOrEditloading = false;
+                                    _this.getSchoolList();
+                                    _this.handleReset(name);
+                                    _this.editModal = false;
+                                }, 1000);
+                            }).catch(error => {
                                 _this.addOrEditloading = false;
-                                if (_this.id > 0) {
-                                    _this.$refs.editLogo.src = _this.zlogo;
-                                } else {
+                                _this.$Message.error('系统出错，请稍后再试。');
+                            })
+                        } else {
+                            let formData = {
+                                'school_name': _this.addForm.school_name,
+                                'school_code': _this.addForm.school_code,
+                                'status': _this.addForm.status,
+                                'logo': _this.addForm.logo
+                            };
+                            axios.post(path + '/api/school', formData).then(response => {
+                                _this.$Message.success('新增成功');
+                                setTimeout(function () {
+                                    _this.addOrEditloading = false;
                                     _this.$refs.addLogo.src = _this.zlogo;
-                                }
-                                _this.getSchoolList();
-                                _this.handleReset(name);
-                                _this.closeModal();
-                            }, 1000);
-                        }).catch(error => {
-                            _this.addOrEditloading = false;
-                            _this.$Message.error('系统出错，请稍后再试。');
-                        })
+                                    _this.getSchoolList();
+                                    _this.handleReset(name);
+                                    _this.addModal = false;
+                                }, 1000);
+                            }).catch(error => {
+                                _this.addOrEditloading = false;
+                                _this.$Message.error('系统出错，请稍后再试。');
+                            });
+                        }
                     }
                 });
             },
             handleReset(name) {
                 this.$refs[name].resetFields();
                 this.$refs.addLogo.src = this.addForm.logo = this.zlogo;
-            },
-            closeModal(name) {
-                this.handleReset(name);
-                this.$Modal.remove();
+                this.$refs.editLogo.src = this.editForm.logo = this.zlogo;
             },
             handleError(error, file) {
                 this.$Notice.error({
@@ -394,8 +461,37 @@
                 });
             },
             changeWishStatus(id, value) {
-
-            }
+                this.$Modal.confirm({
+                    title: '温馨提示',
+                    content: '<h3>确定要进行当前操作吗？</h3>',
+                    onOk: () => {
+                        axios.patch(path + `/api/school/${id}`, {
+                            status: value
+                        }).then(response => {
+                            this.$Message.success('状态变更成功', 1.5);
+                        }).catch(error => {
+                            this.$Message.error('状态变更失败', 1.5);
+                            this.getSchoolList();
+                        })
+                    },
+                    onCancel: () => {
+                        this.getSchoolList();
+                    }
+                });
+            },
+            deleteSchool(id, index) {
+                axios.delete(path + `/api/school/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.remove(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('删除失败', 1.5);
+                })
+            },
+            remove (index) {
+                this.schools.splice(index, 1);
+                this.total -- ;
+            },
         }
     };
 </script>
