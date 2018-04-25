@@ -490,7 +490,7 @@
             },
             remove (index) {
                 this.schools.splice(index, 1);
-                this.total -- ;
+                this.total-- ;
             },
         }
     };

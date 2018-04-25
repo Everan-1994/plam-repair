@@ -69,9 +69,10 @@ export const appRouter = [
         icon: 'ios-home',
         name: 'school',
         title: '学校管理',
+        access: [1],
         component: Main,
         children: [
-            { path: 'school', title: '学校管理', name: 'school_index', component: () => import('@/views/school/schools.vue') }
+            { path: 'school', title: '学校管理', name: 'school_index', access: 1, component: () => import('@/views/school/schools.vue') }
         ]
     },
     {
@@ -79,13 +80,13 @@ export const appRouter = [
         icon: 'android-person',
         title: '用户管理',
         name: 'users',
-        access: 1,
+        access: [1, 2],
         component: Main,
         children: [
             { path: 'customers', title: '客户管理', name: 'customers', access: 1, component: () => import('@/views/users/customers.vue') },
-            { path: 'admins', title: '管理员', name: 'admins', access: 1, component: () => import('@/views/users/admins.vue') },
-            { path: 'repairmans', title: '维修员', name: 'repairmans', access: 1, component: () => import('@/views/users/repairmans.vue') },
-            { path: 'members', title: '用户管理', name: 'members', access: 1, component: () => import('@/views/users/members.vue') }
+            { path: 'admins', title: '管理员', name: 'admins', access: [1, 2], component: () => import('@/views/users/admins.vue') },
+            { path: 'repairmans', title: '维修员', name: 'repairmans', access: 2, component: () => import('@/views/users/repairmans.vue') },
+            { path: 'members', title: '用户管理', name: 'members', access: 2, component: () => import('@/views/users/members.vue') }
         ]
     },
     {
@@ -93,14 +94,14 @@ export const appRouter = [
         icon: 'clipboard',
         title: '工单管理',
         name: 'orders',
-        access: 1,
+        access: [2],
         component: Main,
         children: [
-            { path: 'to-be-repaired', title: '待维修', name: 'to-be-repaired_index', access: 1, component: () => import('@/views/orders/to-be-repaired.vue') },
-            { path: 'repairing', title: '维修中', name: 'repairing_index', access: 1, component: () => import('@/views/orders/repairing.vue') },
-            { path: 'repaired', title: '已维修', name: 'repaired_index', access: 1, component: () => import('@/views/orders/repaired.vue') },
-            { path: 'dismissed', title: '已驳回', name: 'dismissed_index', access: 1, component: () => import('@/views/orders/dismissed.vue') },
-            { path: 'appealing', title: '申述管理', name: 'appealing_index', access: 1, component: () => import('@/views/orders/appealing.vue') },
+            { path: 'to-be-repaired', title: '待维修', name: 'to-be-repaired_index', access: 2, component: () => import('@/views/orders/to-be-repaired.vue') },
+            { path: 'repairing', title: '维修中', name: 'repairing_index', access: 2, component: () => import('@/views/orders/repairing.vue') },
+            { path: 'repaired', title: '已维修', name: 'repaired_index', access: 2, component: () => import('@/views/orders/repaired.vue') },
+            { path: 'dismissed', title: '已驳回', name: 'dismissed_index', access: 2, component: () => import('@/views/orders/dismissed.vue') },
+            { path: 'appealing', title: '申述管理', name: 'appealing_index', access: 2, component: () => import('@/views/orders/appealing.vue') },
         ]
     }
 

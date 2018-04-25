@@ -38,33 +38,19 @@
             </Card>
             </Col>
         </Row>
-        <Modal title="新增客户" v-model="addModal" :mask-closable="false" width="600" @on-cancel="resetAddModel">
+        <Modal title="新增客户" v-model="addModal" :mask-closable="false" width="400" @on-cancel="resetAddModel">
             <div>
                 <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
-                    <Form-item label="客户名称" prop="name">
-                        <Input v-model="addForm.name" placeholder="请输入客户名称" />
+                    <Form-item label="客户账号" prop="name">
+                        <Input v-model="addForm.name" placeholder="请输入客户账号" />
+                    </Form-item>
+                    <Form-item label="账号密码" prop="password">
+                        <Input v-model="addForm.password" placeholder="请输入账号密码" />
                     </Form-item>
                     <Form-item label="绑定学校" prop="school_id">
                         <Select v-model="addForm.school_id">
                             <Option v-for="item in schools" :value="item.id" :key="item.id">{{ item.school_name }}</Option>
                         </Select>
-                    </Form-item>
-                    <Form-item label="图标" prop="post">
-                        <div style="display: block;width: 100%;">
-                            <Upload
-                                    action="//admin.api.bitbithi.framework7.cn/common/uploadImg"
-                                    :on-format-error="handleFormatError"
-                                    :on-progress="handleProgress"
-                                    :on-success="handleSuccess"
-                                    :on-error="handleError"
-                                    :show-upload-list="false"
-                            >
-                                <img src="../../images/logo.jpg" alt=""
-                                     style="max-width: 240px; max-height: 180px; border-radius: 3px; margin-right: 10px; border: 1px dashed #2d8bf0;"
-                                     ref="addPost">
-                                <input v-model="addForm.post" type="hidden">
-                            </Upload>
-                        </div>
                     </Form-item>
                     <Form-item label="状态" prop="status">
                         <i-switch v-model="addForm.status" size="large" :true-value="1" :false-value="2">
@@ -89,25 +75,8 @@
             </p>
             <div>
                 <Form ref="editForm" :model="editForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
-                    <Form-item label="客户名称" prop="name">
-                        <Input v-model="editForm.name" placeholder="请输入客户名称"/>
-                    </Form-item>
-                    <Form-item label="图标" prop="post">
-                        <div style="display: block;width: 100%;">
-                            <Upload
-                                    action="//admin.api.bitbithi.framework7.cn/common/uploadImg"
-                                    :on-format-error="handleFormatError"
-                                    :on-progress="handleProgress"
-                                    :on-success="handleSuccess"
-                                    :on-error="handleError"
-                                    :show-upload-list="false"
-                            >
-                                <img src="../../images/logo.jpg" alt=""
-                                     style="max-width: 240px; max-height: 180px; border-radius: 3px; margin-right: 10px; border: 1px dashed #2d8bf0;"
-                                     ref="editPost">
-                                <input v-model="editForm.post" type="hidden">
-                            </Upload>
-                        </div>
+                    <Form-item label="客户账号" prop="name">
+                        <Input v-model="editForm.name" placeholder="请输入客户账号"/>
                     </Form-item>
                     <Form-item label="状态" prop="status">
                         <i-switch v-model="editForm.status" size="large" :true-value="1" :false-value="2">
@@ -176,12 +145,12 @@
                     },
                     {
                         key: 'title',
-                        title: '名称',
+                        title: '账号',
                         align: 'center'
                     },
                     {
                         key: 'color',
-                        title: '名称颜色',
+                        title: '账号颜色',
                         align: 'center',
                         width: 100,
                         render: (h, params) => {
@@ -274,22 +243,24 @@
                 customerList: [],
                 rules: {
                     name: [
-                        {required: true, message: '请填写客户名称', trigger: 'blur'}
+                        {required: true, message: '请填写客户账号', trigger: 'blur'}
+                    ],
+                    password: [
+                        {required: true, message: '请填写账号密码', trigger: 'blur'}
                     ],
                     school_id: [
-                        {required: true, message: '请绑定学校', trigger: 'change'}
-                    ],
-                    post: [
-                        {required: true, message: '请上传图标', trigger: 'blur'}
+                        {required: true, message: '请绑定学校', pattern:/.+/, trigger: 'change'}
                     ]
                 }
             }
         },
         created() {
+            axios.get(path + '/api/getSchoolList').then(response => {
+                this.schools = response.data;
+            }).catch(error => {
+                console.log(error);
+            });
 //            this.getCustomerList();
-//            if (this.count > 0) {
-//                this.showPage = true;
-//            }
         },
         methods: {
             getCustomerList() {
@@ -317,18 +288,7 @@
                 this.getCustomerList();
             },
             getCategoryById(id) {
-                let _this = this;
-                axios.get(path + 'category/getCategoryById?id=' + id).then(response => {
-                    if (response.data.errcode == 200) {
-                        let data = response.data.data;
-                        _this.editForm.title = data.title;
-                        _this.editForm.post = data.icon;
-                        _this.$refs.editPost.src = data.icon;
-                        _this.editForm.status = data.status;
-                        _this.editForm.sort = data.sort;
-                        _this.editForm.color = data.color;
-                    }
-                })
+
             },
             deleteCategoryById(id, index) {
                 axios.get(path + 'category/del', {
@@ -336,12 +296,7 @@
                         id: id
                     }
                 }).then(response => {
-                    if (response.data.errcode == 200) {
-                        this.$Message.success('删除成功', 1.5);
-                        this.remove(index)
-                    } else {
-                        this.$Message.error('删除失败', 1.5);
-                    }
+
                 }).catch(error => {
                     console.log(error);
                 })
@@ -366,46 +321,16 @@
                 _this.editloading = true;
                 _this.$refs[name].validate((valid) => {
                     if (valid) {
-                        if (_this.id == 0) {
-                            var formData = {
-                                'id': _this.id,
-                                'title': _this.addForm.title,
-                                'status': _this.addForm.status,
-                                'post': _this.addForm.post,
-                                'color': _this.addForm.color,
-                                'sort': _this.addForm.sort
-                            }
-                        } else {
-                            var formData = {
-                                'id': _this.id,
-                                'title': _this.editForm.title,
-                                'status': _this.editForm.status,
-                                'post': _this.editForm.post,
-                                'color': _this.editForm.color,
-                                'sort': _this.editForm.sort
-                            }
+                        let formData = {
+                            'id': _this.id,
+                            'title': _this.addForm.title,
+                            'status': _this.addForm.status,
+                            'post': _this.addForm.post,
+                            'color': _this.addForm.color,
+                            'sort': _this.addForm.sort
                         }
                         axios.post(path + 'category/addAndEdit', formData).then(response => {
-                            if (response.data.errcode == 200) {
-                                _this.$Message.success('提交成功');
-                                setTimeout(function () {
-                                    _this.addloading = false;
-                                    _this.editloading = false;
-                                    if (_this.id > 0) {
-                                        _this.closeEditModal();
-                                        _this.$refs.editPost.src = '../../images/logo.jpg';
-                                    } else {
-                                        _this.closeAddModal();
-                                        _this.$refs.addPost.src = '../../images/logo.jpg';
-                                    }
-                                    _this.getCustomerList();
-                                    _this.$refs[name].resetFields();
-                                }, 1000)
-                            } else {
-                                _this.$Message.error(response.data.errmsg);
-                                _this.addloading = false;
-                                _this.editloading = false;
-                            }
+
                         }).cache(error => {
                             _this.addloading = false;
                             _this.editloading = false;
@@ -417,60 +342,6 @@
             handleReset(name) {
                 this.$refs[name].resetFields();
             },
-            handleError(error, file) {
-                this.$Notice.error({
-                    title: '图标上传失败',
-                    desc: '系统错误。'
-                })
-                this.loading = false;
-                this.eloading = false;
-            },
-            handleSuccess(res, file) {
-                let response = file.response
-
-                if (response.code == 0) {
-                    if (this.id > 0) {
-                        this.editForm.post = response.data.url;
-                        this.$refs.editPost.src = response.data.url;
-                    } else {
-                        this.addForm.post = response.data.url;
-                        this.$refs.addPost.src = response.data.url;
-                    }
-
-                    this.$Notice.success({
-                        title: '温馨提示',
-                        desc: '图标 ' + file.name + ' 上传成功。'
-                    });
-                } else {
-                    this.$Notice.error({
-                        title: '温馨提示',
-                        desc: '图标 ' + file.name + ' 上传失败。'
-                    });
-                }
-
-                this.loading = false;
-                this.eloading = false;
-            },
-            handleFormatError(file) {
-                this.$Notice.warning({
-                    title: '温馨提示',
-                    desc: '图标 ' + file.name + ' 格式不正确，请上传 jpg 或 png 格式的图标。'
-                }, 1.5)
-            },
-            handleMaxSize(file) {
-                this.$Notice.warning({
-                    title: '温馨提示',
-                    desc: '图标 ' + file.name + ' 太大，不能超过 2M。'
-                }, 1.5)
-            },
-            handleProgress(event, file) {
-                this.loading = true;
-                this.eloading = true;
-                this.$Notice.info({
-                    title: '温馨提示',
-                    desc: '图标 ' + file.name + ' 正在上传。'
-                });
-            }
         }
     }
 </script>
