@@ -8,17 +8,18 @@
             <Col span="24">
             <Card>
                 <p slot="title">
-                    <Icon type="paper-airplane"></Icon> 客户列表
+                    <Icon type="paper-airplane"></Icon>
+                    客户列表
                 </p>
                 <Row>
                     <Col span="12">
-                        <span @click="addModal = true" style="margin: 0 10px;">
+                    <span @click="addModal = true" style="margin: 0 10px;">
                             <Button type="primary" icon="plus-round">新增客户</Button>
                         </span>
                     </Col>
                 </Row>
                 <Row class="margin-top-10">
-                    <Table :columns="columns" :data="customerList" :loading="cloading"></Table>
+                    <Table :columns="columns" :data="customerList" :loading="loading"></Table>
                     <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
                         <div style="float: right;">
                             <Page :total="count"
@@ -42,14 +43,18 @@
             <div>
                 <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
                     <Form-item label="客户账号" prop="name">
-                        <Input v-model="addForm.name" placeholder="请输入客户账号" />
+                        <Input v-model="addForm.name" placeholder="请输入客户账号"/>
+                    </Form-item>
+                    <Form-item label="客户邮箱" prop="email">
+                        <Input v-model="addForm.email" placeholder="请输入客户邮箱"/>
                     </Form-item>
                     <Form-item label="账号密码" prop="password">
-                        <Input v-model="addForm.password" placeholder="请输入账号密码" />
+                        <Input v-model="addForm.password" placeholder="请输入账号密码"/>
                     </Form-item>
                     <Form-item label="绑定学校" prop="school_id">
                         <Select v-model="addForm.school_id">
-                            <Option v-for="item in schools" :value="item.id" :key="item.id">{{ item.school_name }}</Option>
+                            <Option v-for="item in schools" :value="item.id" :key="item.id">{{ item.school_name }}
+                            </Option>
                         </Select>
                     </Form-item>
                     <Form-item label="状态" prop="status">
@@ -110,22 +115,22 @@
         name: 'customers',
         data() {
             return {
-                count: 0,
+                total: 0,
                 page: 1,
                 pageSize: 10,
                 pageSizeOpts: [10, 20, 30, 50],
                 showPage: false,
-                cloading: false,
-                loading: false,
+                loading: true,
                 addloading: false,
                 eloading: false,
                 editloading: false,
                 id: 0,
                 addForm: {
                     name: '',
+                    email: '',
+                    password: '',
                     school_id: '',
                     status: 1,
-                    post: '',
                 },
                 editForm: {
                     name: '',
@@ -138,42 +143,53 @@
                 editModal: false,
                 columns: [
                     {
-                        key: 'sort',
+                        key: 'id',
                         title: '排序',
                         align: 'center',
                         width: 60
                     },
                     {
-                        key: 'title',
-                        title: '账号',
+                        key: 'avatar',
+                        title: '头像',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('Avatar', {
+                                props: {
+                                    src: params.row.avatar
+                                }
+                            });
+                        }
+                    },
+                    {
+                        key: 'name',
+                        title: '昵称',
                         align: 'center'
                     },
                     {
-                        key: 'color',
-                        title: '账号颜色',
+                        key: 'email',
+                        title: '邮箱',
+                        align: 'center'
+                    },
+                    {
+                        key: 'phone',
+                        title: '手机号',
                         align: 'center',
-                        width: 100,
                         render: (h, params) => {
-                            return h('Tag', {
-                                props: {
-                                    color: params.row.color
-                                }
-                            })
+                            if (params.row.phone) {
+
+                            } else {
+                                return h('Tag', {
+                                    props: {
+                                        color: 'default'
+                                    }
+                                }, '未绑定');
+                            }
                         }
                     },
                     {
-                        key: 'icon',
-                        title: '图标',
+                        key: 'school_id',
+                        title: '学校',
                         align: 'center',
-                        width: 450,
-                        render: (h, params) => {
-                            return h('img', {
-                                attrs: {
-                                    src: params.row.icon,
-                                    style: 'max-width: 400px; max-height: 200px; border-radius: 10px; padding: 5px;'
-                                }
-                            })
-                        }
                     },
                     {
                         key: 'status',
@@ -208,7 +224,7 @@
                                         click: () => {
                                             this.id = params.row.id;
                                             this.editModal = true;
-                                            this.getCategoryById(params.row.id);
+                                            // this.getCategoryById(params.row.id);
                                         }
                                     }
                                 }, '编辑'),
@@ -220,7 +236,7 @@
                                     },
                                     on: {
                                         'on-ok': () => {
-                                            this.deleteCategoryById(params.row.id, params.index)
+                                            // this.deleteCategoryById(params.row.id, params.index)
                                         }
                                     }
                                 }, [
@@ -245,11 +261,15 @@
                     name: [
                         {required: true, message: '请填写客户账号', trigger: 'blur'}
                     ],
+                    email: [
+                        {required: true, message: '请填写客户账号', trigger: 'blur'},
+                        {type: 'email', message: '邮箱格式不正确', trigger: 'change'}
+                    ],
                     password: [
                         {required: true, message: '请填写账号密码', trigger: 'blur'}
                     ],
                     school_id: [
-                        {required: true, message: '请绑定学校', pattern:/.+/, trigger: 'change'}
+                        {required: true, message: '请绑定学校', pattern: /.+/, trigger: 'change'}
                     ]
                 }
             }
@@ -260,7 +280,7 @@
             }).catch(error => {
                 console.log(error);
             });
-//            this.getCustomerList();
+            this.getCustomerList();
         },
         methods: {
             getCustomerList() {
@@ -269,28 +289,29 @@
                     page: _this.page,
                     pageSize: _this.pageSize
                 };
-                axios.get(path + 'category/getCustomerList', {params}).then(response => {
-                    if (response.data.errcode == 200) {
-                        _this.customerList = response.data.data.data;
-                        _this.count = response.data.data.count;
-                        _this.cloading = false;
-                    }
-                })
+                axios.get(path + '/api/customer', {params}).then(response => {
+                    _this.customerList = response.data.data;
+                    this.total = response.data.meta.total;
+                    this.total >= 10 ? this.showPage = true : this.showPage = false;
+                    this.loading = false;
+                }).catch(error => {
+                    console.log(error);
+                });
             },
             changePage(value) {
-                this.cloading = true;
+                this.loading = true;
                 this.page = value;
                 this.getCustomerList();
             },
             changePageSize(value) {
-                this.cloading = true;
+                this.loading = true;
                 this.pageSize = value;
                 this.getCustomerList();
             },
-            getCategoryById(id) {
+            getCustomerById(id) {
 
             },
-            deleteCategoryById(id, index) {
+            deleteCustomerById(id, index) {
                 axios.get(path + 'category/del', {
                     params: {
                         id: id
@@ -322,15 +343,20 @@
                 _this.$refs[name].validate((valid) => {
                     if (valid) {
                         let formData = {
-                            'id': _this.id,
-                            'title': _this.addForm.title,
+                            'name': _this.addForm.name,
+                            'email': _this.addForm.email,
+                            'password': _this.addForm.password,
+                            'school_id': _this.addForm.school_id,
                             'status': _this.addForm.status,
-                            'post': _this.addForm.post,
-                            'color': _this.addForm.color,
-                            'sort': _this.addForm.sort
-                        }
-                        axios.post(path + 'category/addAndEdit', formData).then(response => {
-
+                        };
+                        axios.post(path + '/api/customer', formData).then(response => {
+                            _this.$Message.success('新增成功');
+                            setTimeout(function () {
+                                _this.addloading = false;
+                                _this.getCustomerList();
+                                _this.handleReset(name);
+                                _this.addModal = false;
+                            }, 1000);
                         }).cache(error => {
                             _this.addloading = false;
                             _this.editloading = false;
