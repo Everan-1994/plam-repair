@@ -42,18 +42,18 @@
         <Modal title="新增客户" v-model="addModal" :mask-closable="false" width="400" @on-cancel="resetAddModel">
             <div>
                 <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
-                    <Form-item label="客户账号" prop="name">
-                        <Input v-model="addForm.name" placeholder="请输入客户账号"/>
+                    <Form-item label="客户昵称" prop="name">
+                        <Input v-model="addForm.name" placeholder="请输入客户昵称"/>
                     </Form-item>
                     <Form-item label="客户邮箱" prop="email">
                         <Input v-model="addForm.email" placeholder="请输入客户邮箱"/>
                     </Form-item>
                     <Form-item label="账号密码" prop="password">
-                        <Input v-model="addForm.password" placeholder="请输入账号密码"/>
+                        <Input type="password" v-model="addForm.password" placeholder="请输入账号密码"/>
                     </Form-item>
                     <Form-item label="绑定学校" prop="school_id">
                         <Select v-model="addForm.school_id">
-                            <Option v-for="item in schools" :value="item.id" :key="item.id">{{ item.school_name }}
+                            <Option v-for="item in schools" :value="item.id" :key="item.id" :disabled="item.bind == 1">{{ item.school_name }}
                             </Option>
                         </Select>
                     </Form-item>
@@ -73,25 +73,34 @@
             </div>
             <div slot="footer"></div>
         </Modal>
-        <Modal v-model="editModal" :mask-closable="false" width="600">
+        <Modal v-model="editModal" :mask-closable="false" width="400">
             <p slot="header" style="color:#f60;text-align:center">
                 <Icon type="edit"></Icon>
                 <span>编辑客户</span>
             </p>
             <div>
                 <Form ref="editForm" :model="editForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
-                    <Form-item label="客户账号" prop="name">
-                        <Input v-model="editForm.name" placeholder="请输入客户账号"/>
+                    <Form-item label="客户昵称" prop="name">
+                        <Input v-model="editForm.name" placeholder="请输入客户昵称"/>
+                    </Form-item>
+                    <Form-item label="客户邮箱" prop="email">
+                        <Input v-model="editForm.email" placeholder="请输入客户邮箱"/>
+                    </Form-item>
+                    <Form-item label="账号密码" prop="password">
+                        <Input type="password" style="width: 75%;" :disabled="isdisplay" v-model="editForm.password" placeholder="请输入账号密码"/>
+                        <Checkbox style="margin-left: 10px;" v-model="isdisplay"> {{ isdisplay ? open_close.open : open_close.close }} </Checkbox>
+                    </Form-item>
+                    <Form-item label="绑定学校" prop="school_id">
+                        <Select v-model="editForm.school_id">
+                            <Option v-for="item in schools" :value="item.id" :key="item.id" :disabled="item.bind == 1 && editForm.school_id != item.id">{{ item.school_name }}
+                            </Option>
+                        </Select>
                     </Form-item>
                     <Form-item label="状态" prop="status">
                         <i-switch v-model="editForm.status" size="large" :true-value="1" :false-value="2">
                             <span slot="open">正常</span>
                             <span slot="close">禁用</span>
                         </i-switch>
-                    </Form-item>
-                    <Form-item label="排序" prop="sort">
-                        <Input v-model="editForm.sort" style="width: 70px;" placeholder="请输入排序"/>
-                        <span><i style="color: red;">*</i> 数字大的排前面</span>
                     </Form-item>
                     <Form-item style="text-align: right;">
                         <Button type="primary" @click="handleSubmit('editForm')" icon="paper-airplane"
@@ -124,6 +133,11 @@
                 addloading: false,
                 eloading: false,
                 editloading: false,
+                isdisplay: true,
+                open_close: {
+                    open: '开启',
+                    close: '关闭'
+                },
                 id: 0,
                 addForm: {
                     name: '',
@@ -134,9 +148,10 @@
                 },
                 editForm: {
                     name: '',
+                    email: '',
                     school_id: '',
                     status: 1,
-                    post: '',
+                    password: '',
                 },
                 schools: [],
                 addModal: false,
@@ -176,7 +191,7 @@
                         align: 'center',
                         render: (h, params) => {
                             if (params.row.phone) {
-
+                                return params.row.phone;
                             } else {
                                 return h('Tag', {
                                     props: {
@@ -197,12 +212,23 @@
                         align: 'center',
                         width: 120,
                         render: (h, params) => {
-                            return h('Tag', {
+                            return h('i-switch', {
                                 props: {
-                                    type: 'dot',
-                                    color: params.row.status == 1 ? 'green' : 'red'
-                                }
-                            }, params.row.status == 1 ? '正常' : '禁用')
+                                    size: 'large',
+                                    value: params.row.status,
+                                    'true-value': 1,
+                                    'false-value': 2
+                                },
+                                scopedSlots: {
+                                    open: () => h('span', '正常'),
+                                    close: () => h('span', '禁用')
+                                },
+                                on: {
+                                    'on-change': (value) => {
+                                        this.changeWishStatus(params.row.id, value);
+                                    }
+                                },
+                            });
                         }
                     },
                     {
@@ -224,7 +250,7 @@
                                         click: () => {
                                             this.id = params.row.id;
                                             this.editModal = true;
-                                            // this.getCategoryById(params.row.id);
+                                            this.getCustomerById(params.row.id);
                                         }
                                     }
                                 }, '编辑'),
@@ -236,7 +262,7 @@
                                     },
                                     on: {
                                         'on-ok': () => {
-                                            // this.deleteCategoryById(params.row.id, params.index)
+                                            this.deleteCustomer(params.row.id, params.index)
                                         }
                                     }
                                 }, [
@@ -259,10 +285,10 @@
                 customerList: [],
                 rules: {
                     name: [
-                        {required: true, message: '请填写客户账号', trigger: 'blur'}
+                        {required: true, message: '请填写客户昵称', trigger: 'blur'}
                     ],
                     email: [
-                        {required: true, message: '请填写客户账号', trigger: 'blur'},
+                        {required: true, message: '请填写邮箱', trigger: 'blur'},
                         {type: 'email', message: '邮箱格式不正确', trigger: 'change'}
                     ],
                     password: [
@@ -275,11 +301,13 @@
             }
         },
         created() {
+            // 获取学校
             axios.get(path + '/api/getSchoolList').then(response => {
                 this.schools = response.data;
             }).catch(error => {
                 console.log(error);
             });
+            // 获取客户列表
             this.getCustomerList();
         },
         methods: {
@@ -309,15 +337,12 @@
                 this.getCustomerList();
             },
             getCustomerById(id) {
-
-            },
-            deleteCustomerById(id, index) {
-                axios.get(path + 'category/del', {
-                    params: {
-                        id: id
-                    }
-                }).then(response => {
-
+                axios.get(`${path}/api/customer/${id}`).then(response => {
+                    let data = response.data;
+                    this.editForm.name = data.name;
+                    this.editForm.school_id = data.school_id;
+                    this.editForm.status = data.status;
+                    this.editForm.email = data.email;
                 }).catch(error => {
                     console.log(error);
                 })
@@ -342,31 +367,86 @@
                 _this.editloading = true;
                 _this.$refs[name].validate((valid) => {
                     if (valid) {
-                        let formData = {
-                            'name': _this.addForm.name,
-                            'email': _this.addForm.email,
-                            'password': _this.addForm.password,
-                            'school_id': _this.addForm.school_id,
-                            'status': _this.addForm.status,
-                        };
-                        axios.post(path + '/api/customer', formData).then(response => {
-                            _this.$Message.success('新增成功');
-                            setTimeout(function () {
+                        if (_this.id > 0) {
+                            let formData = {
+                                'name': _this.editForm.name,
+                                'email': _this.editForm.email,
+                                'password': _this.editForm.password,
+                                'school_id': _this.editForm.school_id,
+                                'status': _this.editForm.status,
+                            };
+                            axios.patch(`${path}/api/customer/${_this.id}`, formData).then(response => {
+                                _this.$Message.success('更新成功');
+                                setTimeout(function () {
+                                    _this.editloading = false;
+                                    _this.getCustomerList();
+                                    _this.handleReset(name);
+                                    _this.editModal = false;
+                                }, 1000);
+                            }).catch(error => {
                                 _this.addloading = false;
-                                _this.getCustomerList();
-                                _this.handleReset(name);
-                                _this.addModal = false;
-                            }, 1000);
-                        }).cache(error => {
-                            _this.addloading = false;
-                            _this.editloading = false;
-                            _this.$Message.error('系统出错，请稍后再试。');
-                        })
+                                _this.editloading = false;
+                                _this.$Message.error('系统出错，请稍后再试。');
+                            });
+                        } else {
+                            let formData = {
+                                'name': _this.addForm.name,
+                                'email': _this.addForm.email,
+                                'password': _this.addForm.password,
+                                'school_id': _this.addForm.school_id,
+                                'status': _this.addForm.status,
+                            };
+                            axios.post(path + '/api/customer', formData).then(response => {
+                                _this.$Message.success('新增成功');
+                                setTimeout(function () {
+                                    _this.addloading = false;
+                                    _this.getCustomerList();
+                                    _this.handleReset(name);
+                                    _this.addModal = false;
+                                }, 1000);
+                            }).catch(error => {
+                                _this.addloading = false;
+                                _this.editloading = false;
+                                _this.$Message.error('系统出错，请稍后再试。');
+                            });
+                        }
                     }
                 });
             },
             handleReset(name) {
                 this.$refs[name].resetFields();
+            },
+            changeWishStatus(id, value) {
+                this.$Modal.confirm({
+                    title: '温馨提示',
+                    content: '<h3>确定要进行当前操作吗？</h3>',
+                    onOk: () => {
+                        axios.patch(path + `/api/customer/${id}`, {
+                            status: value
+                        }).then(response => {
+                            this.$Message.success('状态变更成功', 1.5);
+                        }).catch(error => {
+                            this.$Message.error('状态变更失败', 1.5);
+                            this.getCustomerList();
+                        })
+                    },
+                    onCancel: () => {
+                         this.getCustomerList();
+                    }
+                });
+            },
+            deleteCustomer(id, index) {
+                axios.delete(`${path}/api/customer/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.remove(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('删除失败', 1.5);
+                })
+            },
+            remove (index) {
+                this.schools.splice(index, 1);
+                this.total-- ;
             },
         }
     }

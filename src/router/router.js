@@ -97,11 +97,7 @@ export const appRouter = [
         access: [2],
         component: Main,
         children: [
-            { path: 'to-be-repaired', title: '待维修', name: 'to-be-repaired_index', access: 2, component: () => import('@/views/orders/to-be-repaired.vue') },
-            { path: 'repairing', title: '维修中', name: 'repairing_index', access: 2, component: () => import('@/views/orders/repairing.vue') },
-            { path: 'repaired', title: '已维修', name: 'repaired_index', access: 2, component: () => import('@/views/orders/repaired.vue') },
-            { path: 'dismissed', title: '已驳回', name: 'dismissed_index', access: 2, component: () => import('@/views/orders/dismissed.vue') },
-            { path: 'appealing', title: '申述管理', name: 'appealing_index', access: 2, component: () => import('@/views/orders/appealing.vue') },
+            { path: 'orders', title: '工单管理', name: 'orders_index', access: 2, component: () => import('@/views/orders/orders.vue') }
         ]
     }
 

@@ -1,14 +1,12 @@
 <template>
   <div>
-    <Card shadow>
-      <p>待维修</p>
-    </Card>
+      新工单11111
   </div>
 </template>
 
 <script>
 export default {
-    name: 'to_be_repaired',
+    name: 'new-order',
 };
 </script>
 
