@@ -41,7 +41,7 @@
         </Row>
         <Modal title="新增客户" v-model="addModal" :mask-closable="false" width="400" @on-cancel="resetAddModel">
             <div>
-                <Form ref="addForm" :model="addForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
+                <Form ref="addForm" :model="addForm" :label-width="80" :rules="arules" style="margin-right: 25px;">
                     <Form-item label="客户昵称" prop="name">
                         <Input v-model="addForm.name" placeholder="请输入客户昵称"/>
                     </Form-item>
@@ -79,7 +79,7 @@
                 <span>编辑客户</span>
             </p>
             <div>
-                <Form ref="editForm" :model="editForm" :label-width="80" :rules="rules" style="margin-right: 25px;">
+                <Form ref="editForm" :model="editForm" :label-width="80" :rules="erules" style="margin-right: 25px;">
                     <Form-item label="客户昵称" prop="name">
                         <Input v-model="editForm.name" placeholder="请输入客户昵称"/>
                     </Form-item>
@@ -202,9 +202,22 @@
                         }
                     },
                     {
-                        key: 'school_id',
+                        key: 'school',
                         title: '学校',
                         align: 'center',
+                        render: (h, params) => {
+                            let school = params.row.school;
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'ios-home',
+                                        size: '15',
+                                        color: '#2fb0dc'
+                                    }
+                                }),
+                                h('span', ' ' + school.school_name)
+                            ]);
+                        }
                     },
                     {
                         key: 'status',
@@ -283,7 +296,7 @@
                     }
                 ],
                 customerList: [],
-                rules: {
+                arules: {
                     name: [
                         {required: true, message: '请填写客户昵称', trigger: 'blur'}
                     ],
@@ -293,6 +306,18 @@
                     ],
                     password: [
                         {required: true, message: '请填写账号密码', trigger: 'blur'}
+                    ],
+                    school_id: [
+                        {required: true, message: '请绑定学校', pattern: /.+/, trigger: 'change'}
+                    ]
+                },
+                erules: {
+                    name: [
+                        {required: true, message: '请填写客户昵称', trigger: 'blur'}
+                    ],
+                    email: [
+                        {required: true, message: '请填写邮箱', trigger: 'blur'},
+                        {type: 'email', message: '邮箱格式不正确', trigger: 'change'}
                     ],
                     school_id: [
                         {required: true, message: '请绑定学校', pattern: /.+/, trigger: 'change'}
@@ -371,10 +396,14 @@
                             let formData = {
                                 'name': _this.editForm.name,
                                 'email': _this.editForm.email,
-                                'password': _this.editForm.password,
                                 'school_id': _this.editForm.school_id,
                                 'status': _this.editForm.status,
                             };
+
+                            if (_this.editForm.password.length > 0) {
+                                formData.password = _this.editForm.password;
+                            }
+
                             axios.patch(`${path}/api/customer/${_this.id}`, formData).then(response => {
                                 _this.$Message.success('更新成功');
                                 setTimeout(function () {
@@ -386,7 +415,7 @@
                             }).catch(error => {
                                 _this.addloading = false;
                                 _this.editloading = false;
-                                _this.$Message.error('系统出错，请稍后再试。');
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
                             });
                         } else {
                             let formData = {
@@ -407,9 +436,12 @@
                             }).catch(error => {
                                 _this.addloading = false;
                                 _this.editloading = false;
-                                _this.$Message.error('系统出错，请稍后再试。');
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
                             });
                         }
+                    } else {
+                        _this.addloading = false;
+                        _this.editloading = false;
                     }
                 });
             },
