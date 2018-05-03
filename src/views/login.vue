@@ -100,6 +100,7 @@
                             JWT.setToken('Bearer ' + data.meta.access_token);
                             Cookies.set('user', data.data.name);
                             Cookies.set('password', _this.form.password);
+                            Cookies.set('school_id', data.data.school_id);
                             Cookies.set('access', data.data.identify);
                             _this.$store.commit('setAvator', data.data.avatar);
                             _this.$Message.success({

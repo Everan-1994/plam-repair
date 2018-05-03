@@ -91,13 +91,25 @@ export const appRouter = [
     },
     {
         path: '/orders',
-        icon: 'clipboard',
+        icon: 'ios-paper-outline',
         title: '工单管理',
         name: 'orders',
         access: [2],
         component: Main,
         children: [
             { path: 'orders', title: '工单管理', name: 'orders_index', access: 2, component: () => import('@/views/orders/orders.vue') }
+        ]
+    },
+    {
+        path: '/systems',
+        icon: 'ios-speedometer-outline',
+        title: '系统管理',
+        name: 'systems',
+        access: [2],
+        component: Main,
+        children: [
+            { path: 'areas', title: '区域管理', name: 'areas_index', access: 2, component: () => import('@/views/systems/areas.vue') },
+            { path: 'base', title: '基本设置', name: 'base_index', access: 2, component: () => import('@/views/systems/base.vue') },
         ]
     }
 

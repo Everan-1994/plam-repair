@@ -1,0 +1,280 @@
+<style lang="less">
+    @import '../../styles/common.less';
+</style>
+
+<template>
+    <div>
+        <Row class="margin-top-20">
+            <Col span="12">
+            <Card>
+                <p slot="title">
+                    <Icon type="paper-airplane"></Icon>
+                    区域列表
+                </p>
+                <Row>
+                    <Col span="12">
+                        <span @click="area.addModal = true" style="margin: 0 10px;">
+                            <Button type="primary" icon="plus-round">新增区域</Button>
+                        </span>
+                    </Col>
+                </Row>
+                <Row class="margin-top-10">
+                    <Table :columns="columns" :data="areaList" :loading="area.loading"></Table>
+                    <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="area.showPage">
+                        <div style="float: right;">
+                            <Page :total="area.total" :current="area.page" @on-change="changePage" simple></Page>
+                        </div>
+                    </div>
+                </Row>
+            </Card>
+            </Col>
+        </Row>
+        <Modal title="新增区域" v-model="area.addModal" :mask-closable="false" width="400" @on-cancel="resetAddAreaModel">
+            <div>
+                <Form ref="addAreaForm" :model="addAreaForm" :label-width="80" :rules="area_rules" style="margin-right: 25px;">
+                    <Form-item label="区域名称" prop="name">
+                        <Input v-model="addAreaForm.name" placeholder="请输入区域名称"/>
+                    </Form-item>
+                    <Form-item label="状态" prop="status">
+                        <i-switch v-model="addAreaForm.status" size="large" :true-value="1" :false-value="2">
+                            <span slot="open">正常</span>
+                            <span slot="close">禁用</span>
+                        </i-switch>
+                    </Form-item>
+                    <Form-item style="text-align: right;">
+                        <Button type="primary" @click="handleSubmit('addAreaForm')" icon="paper-airplane"
+                                :loading="addAreaLoading"> 提 交
+                        </Button>
+                        <Button type="ghost" @click="handleReset('addAreaForm')" style="margin-left: 8px">Reset</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+    </div>
+</template>
+
+<script>
+    import axios from 'axios';
+    import Cookies from 'js-cookie';
+    import {path} from './../../helpers/path';
+
+    export default {
+        name: 'base_index',
+        data() {
+            return {
+                school_id: Cookies.get('school_id'),
+                area: {
+                    id: 0,
+                    total: 0,
+                    page: 1,
+                    loading: true,
+                    showPage: false,
+                    addModal: false,
+                },
+                addAreaForm: {
+                    name: '',
+                    status: 1
+                },
+                editAreaForm: {
+                    name: '',
+                    status: 1
+                },
+                area_rules: {
+                    name: [
+                        {required: true, message: '请填写区域名称', trigger: 'blur'}
+                    ],
+                },
+                addAreaLoading: false,
+                editAreaLoading: false,
+                areaList: [],
+                columns: [
+                    {
+                        key: 'id',
+                        title: '序号',
+                        align: 'center',
+                        width: 60
+                    },
+                    {
+                        key: 'name',
+                        title: '区域',
+                        align: 'center'
+                    },
+                    {
+                        key: 'status',
+                        title: '状态',
+                        align: 'center',
+                        width: 120,
+                        render: (h, params) => {
+                            return h('i-switch', {
+                                props: {
+                                    size: 'large',
+                                    value: params.row.status,
+                                    'true-value': 1,
+                                    'false-value': 2
+                                },
+                                scopedSlots: {
+                                    open: () => h('span', '正常'),
+                                    close: () => h('span', '禁用')
+                                },
+                                on: {
+                                    'on-change': (value) => {
+                                        this.changeAreaStatus(params.row.id, value);
+                                    }
+                                },
+                            });
+                        }
+                    },
+                    {
+                        key: 'action',
+                        title: '操作',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Button', {
+                                    props: {
+                                        type: 'info',
+                                        size: 'small',
+                                        icon: 'edit'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.id = params.row.id;
+                                            this.area.editModal = true;
+                                            this.getAreaById(params.row.id);
+                                        }
+                                    }
+                                }, '编辑'),
+                                h('Poptip', {
+                                    props: {
+                                        confirm: true,
+                                        title: '确定要删除这条数据吗?',
+                                        transfer: true
+                                    },
+                                    on: {
+                                        'on-ok': () => {
+                                            this.deleteArea(params.row.id, params.index)
+                                        }
+                                    }
+                                }, [
+                                    h('Button', {
+                                        style: {
+                                            marginRight: '5px'
+                                        },
+                                        props: {
+                                            type: 'error',
+                                            size: 'small',
+                                            placement: 'top',
+                                            icon: 'trash-a'
+                                        }
+                                    }, '删除')
+                                ])
+                            ])
+                        }
+                    }
+                ],
+            }
+        },
+        created() {
+            this.getAreaList();
+        },
+        methods: {
+            resetAddAreaModel () {
+                this.handleReset('addAreaForm');
+            },
+            handleSubmit (name) {
+                let _this = this;
+                _this.addAreaLoading = true;
+                _this.editAreaLoading = true;
+                _this.$refs[name].validate((valid) => {
+                    if (valid) {
+                        if (_this.area.id > 0) {
+                            let formData = {
+                                'name': _this.editAreaForm.name,
+                                'status': _this.editAreaForm.status,
+                            };
+
+                            axios.patch(`${path}/api/area/${_this.area.id}`, formData).then(response => {
+                                _this.$Message.success('更新成功');
+                                setTimeout(function () {
+                                    _this.editAreaLoading = false;
+                                    _this.getAreaList();
+                                    _this.handleReset(name);
+                                    _this.area.editModal = false;
+                                }, 1000);
+                                _this.addAreaLoading = false;
+                                _this.editAreaLoading = false;
+                            }).catch(error => {
+                                _this.addAreaLoading = false;
+                                _this.editAreaLoading = false;
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
+                            });
+                        } else {
+                            let formData = {
+                                'name': _this.addAreaForm.name,
+                                'school_id': _this.school_id,
+                                'status': _this.addAreaForm.status,
+                            };
+                            axios.post(`${path}/api/area`, formData).then(response => {
+                                _this.$Message.success('新增成功');
+                                setTimeout(function () {
+                                    _this.addAreaLoading = false;
+                                    _this.getAreaList();
+                                    _this.handleReset(name);
+                                    _this.area.addModal = false;
+                                }, 1000);
+                                _this.addAreaLoading = false;
+                                _this.editAreaLoading = false;
+                            }).catch(error => {
+                                _this.addAreaLoading = false;
+                                _this.editAreaLoading = false;
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
+                            });
+                        }
+                    } else {
+                        
+                    }
+                });
+            },
+            handleReset(name) {
+                this.$refs[name].resetFields();
+            },
+            getAreaList () {
+                let _this = this;
+                let params = {
+                    page: _this.area.page,
+                    school_id: _this.school_id
+                };
+                axios.get(`${path}/api/area`, {params}).then(response => {
+                    _this.areaList = response.data.data;
+                    _this.area.total = response.data.meta.total;
+                    _this.area.total > 0 ? _this.area.showPage = true : _this.area.showPage = false;
+                    _this.area.loading = false;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
+            changePage(value) {
+                this.area.loading = true;
+                this.area.page = value;
+                this.getAreaList();
+            },
+            getAreaById (id) {
+
+            },
+            deleteArea () {
+
+            },
+            changeAreaStatus () {
+                
+            }
+        }
+    };
+</script>
+
+<style>
+
+</style>

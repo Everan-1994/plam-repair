@@ -238,7 +238,7 @@
                                 },
                                 on: {
                                     'on-change': (value) => {
-                                        this.changeWishStatus(params.row.id, value);
+                                        this.changeCustomerStatus(params.row.id, value);
                                     }
                                 },
                             });
@@ -412,6 +412,8 @@
                                     _this.handleReset(name);
                                     _this.editModal = false;
                                 }, 1000);
+                                _this.addloading = false;
+                                _this.editloading = false;
                             }).catch(error => {
                                 _this.addloading = false;
                                 _this.editloading = false;
@@ -433,6 +435,8 @@
                                     _this.handleReset(name);
                                     _this.addModal = false;
                                 }, 1000);
+                                _this.addloading = false;
+                                _this.editloading = false;
                             }).catch(error => {
                                 _this.addloading = false;
                                 _this.editloading = false;
@@ -448,7 +452,7 @@
             handleReset(name) {
                 this.$refs[name].resetFields();
             },
-            changeWishStatus(id, value) {
+            changeCustomerStatus(id, value) {
                 this.$Modal.confirm({
                     title: '温馨提示',
                     content: '<h3>确定要进行当前操作吗？</h3>',
