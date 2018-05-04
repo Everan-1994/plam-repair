@@ -51,7 +51,7 @@
                     <Form-item label="LOGO" prop="logo">
                         <div style="display: block;width: 100%;">
                             <Upload
-                                    name="logo"
+                                    name="images"
                                     action="//repair-api.wei/api/upload/image"
                                     :on-format-error="handleFormatError"
                                     :on-progress="handleProgress"

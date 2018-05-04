@@ -108,7 +108,6 @@ export const appRouter = [
         access: [2],
         component: Main,
         children: [
-            { path: 'areas', title: '区域管理', name: 'areas_index', access: 2, component: () => import('@/views/systems/areas.vue') },
             { path: 'base', title: '基本设置', name: 'base_index', access: 2, component: () => import('@/views/systems/base.vue') },
         ]
     }

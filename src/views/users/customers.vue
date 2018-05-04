@@ -327,15 +327,18 @@
         },
         created() {
             // 获取学校
-            axios.get(path + '/api/getSchoolList').then(response => {
-                this.schools = response.data;
-            }).catch(error => {
-                console.log(error);
-            });
+            this.getSchoolList();
             // 获取客户列表
             this.getCustomerList();
         },
         methods: {
+            getSchoolList() {
+                axios.get(path + '/api/getSchoolList').then(response => {
+                    this.schools = response.data;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             getCustomerList() {
                 let _this = this;
                 let params = {
@@ -409,6 +412,7 @@
                                 setTimeout(function () {
                                     _this.editloading = false;
                                     _this.getCustomerList();
+                                    _this.getSchoolList();
                                     _this.handleReset(name);
                                     _this.editModal = false;
                                 }, 1000);
@@ -432,6 +436,7 @@
                                 setTimeout(function () {
                                     _this.addloading = false;
                                     _this.getCustomerList();
+                                    _this.getSchoolList();
                                     _this.handleReset(name);
                                     _this.addModal = false;
                                 }, 1000);
