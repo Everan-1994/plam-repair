@@ -205,6 +205,7 @@
                         key: 'school',
                         title: '学校',
                         align: 'center',
+                        width: 180,
                         render: (h, params) => {
                             let school = params.row.school;
                             return h('div', [

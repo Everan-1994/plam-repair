@@ -1,17 +1,256 @@
+<style lang="less">
+  @import '../../styles/common.less';
+</style>
+
 <template>
   <div>
-    <Card shadow>
-      <p>会员列表</p>
-    </Card>
+    <Row class="margin-top-20">
+      <Col span="24">
+      <Card>
+        <p slot="title">
+          <Icon type="paper-airplane"></Icon>
+          用户列表
+        </p>
+        <Row>
+          <Col span="12">
+              <span @click="addModal = true" style="margin: 0 10px;">
+                  <Button type="primary" icon="plus-round">新增客户</Button>
+              </span>
+          </Col>
+        </Row>
+        <Row class="margin-top-10">
+          <Table :columns="columns" :data="memberList" :loading="loading"></Table>
+          <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
+            <div style="float: right;">
+              <Page :total="count"
+                    :current="page"
+                    :page-size="pageSize"
+                    @on-change="changePage"
+                    @on-page-size-change="changePageSize"
+                    show-sizer
+                    show-elevator
+                    show-total
+                    :page-size-opts="pageSizeOpts"
+                    :placement="'top'">
+              </Page>
+            </div>
+          </div>
+        </Row>
+      </Card>
+      </Col>
+    </Row>
   </div>
 </template>
 
 <script>
-export default {
-    name: 'members',
-};
-</script>
+    import axios from 'axios';
+    import {path} from './../../helpers/path';
+    import JWT from './../../helpers/jwt';
 
-<style>
-  
-</style>
+    export default {
+        name: 'members',
+        data() {
+            return {
+                total: 0,
+                page: 1,
+                pageSize: 20,
+                pageSizeOpts: [10, 20, 30, 50],
+                order: '',
+                sort: '',
+                showPage: false,
+                loading: true,
+                open_close: {
+                    open: '开启',
+                    close: '关闭'
+                },
+                columns: [
+                    {
+                        key: 'id',
+                        title: '排序',
+                        align: 'center',
+                        width: 60
+                    },
+                    {
+                        key: 'avatar',
+                        title: '头像',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('Avatar', {
+                                props: {
+                                    src: params.row.avatar
+                                }
+                            });
+                        }
+                    },
+                    {
+                        key: 'name',
+                        title: '昵称',
+                        align: 'center'
+                    },
+                    {
+                        key: 'phone',
+                        title: '手机号',
+                        align: 'center',
+                        render: (h, params) => {
+                            if (params.row.phone) {
+                                return params.row.phone;
+                            } else {
+                                return h('Tag', {
+                                    props: {
+                                        color: 'default'
+                                    }
+                                }, '未绑定');
+                            }
+                        }
+                    },
+                    {
+                        key: 'status',
+                        title: '状态',
+                        align: 'center',
+                        width: 120,
+                        render: (h, params) => {
+                            return h('i-switch', {
+                                props: {
+                                    size: 'large',
+                                    value: params.row.status,
+                                    'true-value': 1,
+                                    'false-value': 2
+                                },
+                                scopedSlots: {
+                                    open: () => h('span', '正常'),
+                                    close: () => h('span', '禁用')
+                                },
+                                on: {
+                                    'on-change': (value) => {
+                                        this.changememberStatus(params.row.id, value);
+                                    }
+                                },
+                            });
+                        }
+                    },
+                    {
+                        key: 'action',
+                        title: '操作',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Button', {
+                                    props: {
+                                        type: 'info',
+                                        size: 'small',
+                                        icon: 'edit'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.id = params.row.id;
+                                            this.editModal = true;
+                                            this.getmemberById(params.row.id);
+                                        }
+                                    }
+                                }, '编辑'),
+                                h('Poptip', {
+                                    props: {
+                                        confirm: true,
+                                        title: '确定要删除这条数据吗?',
+                                        transfer: true
+                                    },
+                                    on: {
+                                        'on-ok': () => {
+                                            this.deletemember(params.row.id, params.index)
+                                        }
+                                    }
+                                }, [
+                                    h('Button', {
+                                        style: {
+                                            marginRight: '5px'
+                                        },
+                                        props: {
+                                            type: 'error',
+                                            size: 'small',
+                                            placement: 'top',
+                                            icon: 'trash-a'
+                                        }
+                                    }, '删除')
+                                ])
+                            ])
+                        }
+                    }
+                ],
+                memberList: [],
+            }
+        },
+        created() {
+            // 获取用户
+            this.getMemberList();
+        },
+        methods: {
+            getMemberList() {
+                let _this = this;
+                let params = {
+                    page: _this.page,
+                    pageSize: _this.pageSize,
+                    order: _this.order,
+                    sort: _this.sort
+                };
+                axios.get(path + '/api/member', {params}).then(response => {
+                    _this.memberList = response.data.data;
+                    this.total = response.data.meta.total;
+                    this.total >= 10 ? this.showPage = true : this.showPage = false;
+                    this.loading = false;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
+            changePage(value) {
+                this.loading = true;
+                this.page = value;
+                this.getMemberList();
+            },
+            changePageSize(value) {
+                this.loading = true;
+                this.pageSize = value;
+                this.getMemberList();
+            },
+            getMemberById(id) {
+                axios.get(`${path}/api/member/${id}`).then(response => {
+                    let data = response.data;
+                    this.editForm.name = data.name;
+                    this.editForm.school_id = data.school_id;
+                    this.editForm.status = data.status;
+                    this.editForm.email = data.email;
+                }).catch(error => {
+                    console.log(error);
+                })
+            },
+//            remove(index) {
+//                this.memberList.splice(index, 1);
+//            },
+            changeMemberStatus(id, value) {
+                this.$Modal.confirm({
+                    title: '温馨提示',
+                    content: '<h3>确定要将该用户变为维修员吗？</h3>',
+                    onOk: () => {
+                        axios.patch(path + `/api/member/${id}`, {
+                            status: value
+                        }).then(response => {
+                            this.$Message.success('状态变更成功', 1.5);
+                        }).catch(error => {
+                            this.$Message.error('状态变更失败', 1.5);
+                            this.getMemberList();
+                        })
+                    },
+                    onCancel: () => {
+                        this.getMemberList();
+                    }
+                });
+            },
+//            remove (index) {
+//                this.schools.splice(index, 1);
+//                this.total-- ;
+//            },
+        }
+    }
+</script>
