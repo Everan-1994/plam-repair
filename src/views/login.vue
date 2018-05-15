@@ -111,7 +111,7 @@
                             });
                         }).catch(error => {
                             _this.loading = false;
-                            _this.$Message.error(error.response.data.message || '服务器异常');
+                            // _this.$Message.error('服务器异常');
                         });
                     } else {
                         _this.loading = false;
