@@ -22,7 +22,7 @@
           <Table :columns="columns" :data="memberList" :loading="loading"></Table>
           <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
             <div style="float: right;">
-              <Page :total="count"
+              <Page :total="total"
                     :current="page"
                     :page-size="pageSize"
                     @on-change="changePage"
