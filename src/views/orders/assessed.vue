@@ -68,7 +68,7 @@
     import orderDetail from './order-detail';
 
     export default {
-        name: 'appealing',
+        name: 'assessed',
         components: {
             orderDetail
         },
@@ -241,7 +241,7 @@
                     pageSize: _this.pageSize,
                     order: _this.order,
                     sort: _this.sort,
-                    status: 4,
+                    status: 5,
                     school_id: school_id,
                     type: _this.orderType
                 };

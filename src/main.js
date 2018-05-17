@@ -79,7 +79,10 @@ new Vue({
                     break;
                 // 如果响应中的 http code 为 400，那么就弹出一条错误提示给用户
                 case 400:
-                    return this.$Message.error(error.response.data.error);
+                    this.$Message.error(error.response.data.error);
+                    break;
+                case 403:
+                    this.$Message.warning('Sorry，没有权限！');
                     break;
             }
             return Promise.reject(error);
