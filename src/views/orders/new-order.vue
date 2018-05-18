@@ -67,6 +67,11 @@
                         <FormItem label="审核内容">
                             <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="填写驳回原因"></Input>
                         </FormItem>
+                        <Form-item style="text-align: right;">
+                            <Button type="primary" @click="rejectSubmit" icon="paper-airplane"
+                                    :loading="reject"> 提 交
+                            </Button>
+                        </Form-item>
                     </Form>
                 </TabPane>
                 <TabPane label="审核通过给予派工" name="pass2">
@@ -117,7 +122,9 @@
                 id: 0, // 申报id
                 orderType: null,
                 open: 'one',
+                reject: false, //  驳回加载
                 examineForm: {
+                    content: '',
                     repair: ''
                 },
                 types: [
@@ -164,7 +171,6 @@
                     {
                         key: 'avatar',
                         title: '用户',
-                        align: 'center',
                         width: 200,
                         render: (h, params) => {
                             return h('div', [
@@ -182,7 +188,6 @@
                     {
                         key: 'area',
                         title: '申报区域',
-                        align: 'center',
                         render: (h, params) => {
                             return h('div', [
                                 h('Icon', {
@@ -214,7 +219,7 @@
                         title: '申报日期',
                         align: 'center',
                         width: 150,
-                        sortable: true,
+                        // sortable: true,
                         render: (h, params) => {
                             return h('div', [
                                 h('Icon', {
@@ -310,7 +315,7 @@
                     pageSize: _this.pageSize,
                     order: _this.order,
                     sort: _this.sort,
-                    status: 1,
+                    status: 0,
                     school_id: school_id,
                     type: _this.orderType
                 };
@@ -355,6 +360,20 @@
                 this.page = 1;
                 this.orderType = null;
                 this.getOrderList();
+            },
+            rejectSubmit() {
+                let formData = {
+                    order_id: this.id,
+                    content: this.examineForm.content,
+                    type: 1
+                };
+                axios.put(path + '/api/processes', formData).then(response => {
+                    this.$Message.success('驳回成功');
+                    this.examineForm.content = '';
+                    this.examineModal = false;
+                }).catch(error => {
+                    this.$Message.error('系统出错，请稍后再试。');
+                })
             }
         }
     };

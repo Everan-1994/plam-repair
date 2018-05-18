@@ -32,7 +32,7 @@
                 <div v-html="content" class="_content"></div>
 
                 <strong>故障配图：</strong>
-                <div class="_content" style="text-align: center;">
+                <div class="_content">
                     <img v-if="images" v-for="image in images" :src="image" alt="" style="border-radius: 3px; margin-left: 10px; width: 25%;">
                     <span v-else>无</span>
                 </div>
@@ -71,7 +71,7 @@
                 created_at: '',
                 content: '',
                 processes: {},
-                title: ['申报', '审核', '派工', '完工', '申诉', '评价'],
+                title: ['申报', '驳回', '派工', '完工', '申诉', '评价'],
                 icon: ['compose', 'paper-airplane', 'android-bicycle', 'settings', 'android-send', 'android-star-half'],
                 images: {}
             }
