@@ -8,16 +8,9 @@
       <Col span="24">
       <Card>
         <p slot="title">
-          <Icon type="paper-airplane"></Icon>
+          <Icon type="ios-people-outline"></Icon>
           用户列表
         </p>
-        <Row>
-          <Col span="12">
-              <span @click="addModal = true" style="margin: 0 10px;">
-                  <Button type="primary" icon="plus-round">新增客户</Button>
-              </span>
-          </Col>
-        </Row>
         <Row class="margin-top-10">
           <Table :columns="columns" :data="memberList" :loading="loading"></Table>
           <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
@@ -46,6 +39,7 @@
     import axios from 'axios';
     import {path} from './../../helpers/path';
     import JWT from './../../helpers/jwt';
+    import Cookie from 'js-cookie';
 
     export default {
         name: 'members',
@@ -72,36 +66,29 @@
                     },
                     {
                         key: 'avatar',
-                        title: '头像',
-                        align: 'center',
+                        title: '用户',
+                        width: 200,
                         render: (h, params) => {
-                            return h('Avatar', {
-                                props: {
-                                    src: params.row.avatar
-                                }
-                            });
+                            return h('div', [
+                                h('Avatar', {
+                                    props: {
+                                        src: params.row.avatar
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 10px;'
+                                }, params.row.name)
+                            ])
                         }
                     },
                     {
-                        key: 'name',
-                        title: '昵称',
-                        align: 'center'
+                        key: 'address',
+                        title: '地址',
                     },
                     {
                         key: 'phone',
                         title: '手机号',
-                        align: 'center',
-                        render: (h, params) => {
-                            if (params.row.phone) {
-                                return params.row.phone;
-                            } else {
-                                return h('Tag', {
-                                    props: {
-                                        color: 'default'
-                                    }
-                                }, '未绑定');
-                            }
-                        }
+                        align: 'center'
                     },
                     {
                         key: 'status',
@@ -122,7 +109,7 @@
                                 },
                                 on: {
                                     'on-change': (value) => {
-                                        this.changememberStatus(params.row.id, value);
+                                        this.changeMemberStatus(params.row.id, value);
                                     }
                                 },
                             });
@@ -136,9 +123,9 @@
                             return h('div', [
                                 h('Button', {
                                     props: {
-                                        type: 'info',
+                                        type: 'success',
                                         size: 'small',
-                                        icon: 'edit'
+                                        icon: 'search'
                                     },
                                     style: {
                                         marginRight: '5px'
@@ -146,11 +133,34 @@
                                     on: {
                                         click: () => {
                                             this.id = params.row.id;
-                                            this.editModal = true;
-                                            this.getmemberById(params.row.id);
+                                            this.getMemberById(params.row.id);
                                         }
                                     }
-                                }, '编辑'),
+                                }, '详情'),
+                                h('Poptip', {
+                                    props: {
+                                        confirm: true,
+                                        title: '确定要将该用户变为『维修员』吗?',
+                                        transfer: true
+                                    },
+                                    on: {
+                                        'on-ok': () => {
+                                            this.changeIdentify(params.row.id)
+                                        }
+                                    }
+                                }, [
+                                    h('Button', {
+                                        style: {
+                                            marginRight: '5px'
+                                        },
+                                        props: {
+                                            type: 'info',
+                                            size: 'small',
+                                            placement: 'top',
+                                            icon: 'shuffle'
+                                        }
+                                    }, '变更身份')
+                                ]),
                                 h('Poptip', {
                                     props: {
                                         confirm: true,
@@ -159,7 +169,7 @@
                                     },
                                     on: {
                                         'on-ok': () => {
-                                            this.deletemember(params.row.id, params.index)
+                                            this.deleteMember(params.row.id, params.index)
                                         }
                                     }
                                 }, [
@@ -193,7 +203,9 @@
                     page: _this.page,
                     pageSize: _this.pageSize,
                     order: _this.order,
-                    sort: _this.sort
+                    sort: _this.sort,
+                    identify: 5,
+                    school_id: Cookie.get('school_id')
                 };
                 axios.get(path + '/api/member', {params}).then(response => {
                     _this.memberList = response.data.data;
@@ -225,15 +237,18 @@
                     console.log(error);
                 })
             },
+            deleteMember(id) {
+
+            },
 //            remove(index) {
 //                this.memberList.splice(index, 1);
 //            },
             changeMemberStatus(id, value) {
                 this.$Modal.confirm({
                     title: '温馨提示',
-                    content: '<h3>确定要将该用户变为维修员吗？</h3>',
+                    content: '<h3>确定要冻结该用户吗？</h3>',
                     onOk: () => {
-                        axios.patch(path + `/api/member/${id}`, {
+                        axios.patch(`${path}/api/member/${id}`, {
                             status: value
                         }).then(response => {
                             this.$Message.success('状态变更成功', 1.5);
@@ -247,10 +262,19 @@
                     }
                 });
             },
-//            remove (index) {
-//                this.schools.splice(index, 1);
-//                this.total-- ;
-//            },
+            changeIdentify(id) {
+                axios.patch(`${path}/api/member`, {
+                    user_id: id,
+                    identify: 4,
+                    type: 1
+                }).then(response => {
+                    this.$Message.success('身份变更成功', 1.5);
+                    this.getMemberList();
+                }).catch(error => {
+                    this.$Message.error('身份变更失败', 1.5);
+                    this.getMemberList();
+                })
+            }
         }
     }
 </script>

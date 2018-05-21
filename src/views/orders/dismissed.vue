@@ -241,7 +241,7 @@
                     pageSize: _this.pageSize,
                     order: _this.order,
                     sort: _this.sort,
-                    status: 0,
+                    status: 1,
                     school_id: school_id,
                     type: _this.orderType
                 };
