@@ -105,7 +105,7 @@
                                 },
                                 on: {
                                     'on-change': (value) => {
-                                        this.changeMemberStatus(params.row.id, value);
+                                        this.changeStatus(params.row.id, value);
                                     }
                                 },
                             });
@@ -268,6 +268,17 @@
                 }).catch(error => {
                     this.$Message.error('身份变更失败', 1.5);
                     this.getRepairmansList();
+                })
+            },
+            changeStatus(id, value) {
+                axios.patch(`${path}/api/member/status`, {
+                    user_id: id,
+                    status: value,
+                }).then(response => {
+                    this.$Message.success('操作成功', 1.5);
+                }).catch(error => {
+                    this.$Message.error('操作失败', 1.5);
+                    this.getMemberList();
                 })
             }
         }
