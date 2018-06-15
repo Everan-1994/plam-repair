@@ -4,8 +4,8 @@
 
 <template>
     <div>
-        <Row class="margin-top-20">
-            <Col span="12">
+        <Row :gutter="10" class="margin-top-20">
+            <Col :md="24" :lg="12">
             <Card>
                 <p slot="title">
                     <Icon type="paper-airplane"></Icon>
@@ -13,9 +13,9 @@
                 </p>
                 <Row>
                     <Col span="12">
-                        <span @click="area.addModal = true" style="margin: 0 10px;">
-                            <Button type="primary" icon="plus-round">新增区域</Button>
-                        </span>
+                    <span @click="area.addModal = true" style="margin: 0 10px;">
+                                <Button type="primary" icon="plus-round">新增区域</Button>
+                            </span>
                     </Col>
                 </Row>
                 <Row class="margin-top-10">
@@ -28,10 +28,34 @@
                 </Row>
             </Card>
             </Col>
+            <Col :md="24" :lg="12">
+            <Card>
+                <p slot="title">
+                    <Icon type="edit"></Icon>
+                    申报类型
+                </p>
+                <Row>
+                    <Col span="12">
+                    <span @click="type.addModal = true" style="margin: 0 10px;">
+                            <Button type="primary" icon="plus-round">新增类型</Button>
+                        </span>
+                    </Col>
+                </Row>
+                <Row class="margin-top-10">
+                    <Table :columns="typeColumns" :data="typeList" :loading="type.loading"></Table>
+                    <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="type.showPage">
+                        <div style="float: right;">
+                            <Page :total="type.total" :current="type.page" @on-change="typeChangePage" simple></Page>
+                        </div>
+                    </div>
+                </Row>
+            </Card>
+            </Col>
         </Row>
         <Modal title="新增区域" v-model="area.addModal" :mask-closable="false" width="400" @on-cancel="resetAddAreaModel">
             <div>
-                <Form ref="addAreaForm" :model="addAreaForm" :label-width="80" :rules="area_rules" style="margin-right: 25px;">
+                <Form ref="addAreaForm" :model="addAreaForm" :label-width="80" :rules="area_rules"
+                      style="margin-right: 25px;">
                     <Form-item label="区域名称" prop="name">
                         <Input v-model="addAreaForm.name" placeholder="请输入区域名称"/>
                     </Form-item>
@@ -46,6 +70,40 @@
                                 :loading="addAreaLoading"> 提 交
                         </Button>
                         <Button type="ghost" @click="handleReset('addAreaForm')" style="margin-left: 8px">Reset</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+        <Modal title="新增类型" v-model="type.addModal" :mask-closable="false" width="400" @on-cancel="resetAddTypeModel">
+            <div>
+                <Form ref="addTypeForm" :model="addTypeForm" :label-width="80" :rules="type_rules"
+                      style="margin-right: 25px;">
+                    <Form-item label="类型名称" prop="name">
+                        <Input v-model="addTypeForm.name" placeholder="请输入类型名称"/>
+                    </Form-item>
+                    <Form-item style="text-align: right;">
+                        <Button type="primary" @click="typeHandleSubmit('addTypeForm')" icon="paper-airplane"
+                                :loading="addTypeLoading"> 提 交
+                        </Button>
+                        <Button type="ghost" @click="handleReset('addTypeForm')" style="margin-left: 8px">Reset</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+        <Modal title="编辑类型" v-model="type.editModal" :mask-closable="false" width="400" @on-cancel="resetAddTypeModel">
+            <div>
+                <Form ref="editTypeForm" :model="editTypeForm" :label-width="80" :rules="type_rules"
+                      style="margin-right: 25px;">
+                    <Form-item label="类型名称" prop="name">
+                        <Input v-model="editTypeForm.name" placeholder="请输入类型名称"/>
+                    </Form-item>
+                    <Form-item style="text-align: right;">
+                        <Button type="primary" @click="typeHandleSubmit('editTypeForm')" icon="paper-airplane"
+                                :loading="editTypeLoading"> 提 交
+                        </Button>
+                        <Button type="ghost" @click="handleReset('editTypeForm')" style="margin-left: 8px">Reset</Button>
                     </Form-item>
                 </Form>
             </div>
@@ -72,6 +130,15 @@
                     showPage: false,
                     addModal: false,
                 },
+                type: {
+                    id: 0,
+                    total: 0,
+                    page: 1,
+                    loading: true,
+                    showPage: false,
+                    addModal: false,
+                    editModal: false,
+                },
                 addAreaForm: {
                     name: '',
                     status: 1
@@ -80,14 +147,28 @@
                     name: '',
                     status: 1
                 },
+                addTypeForm: {
+                    name: '',
+                },
+                editTypeForm: {
+                    name: '',
+                },
                 area_rules: {
                     name: [
                         {required: true, message: '请填写区域名称', trigger: 'blur'}
                     ],
                 },
+                type_rules: {
+                    name: [
+                        {required: true, message: '请填写类型名称', trigger: 'blur'}
+                    ],
+                },
                 addAreaLoading: false,
                 editAreaLoading: false,
+                addTypeLoading: false,
+                editTypeLoading: false,
                 areaList: [],
+                typeList: [],
                 columns: [
                     {
                         key: 'id',
@@ -176,16 +257,84 @@
                         }
                     }
                 ],
+                typeColumns: [
+                    {
+                        key: 'id',
+                        title: '序号',
+                        align: 'center',
+                        width: 60
+                    },
+                    {
+                        key: 'name',
+                        title: '分类名称',
+                        align: 'center'
+                    },
+                    {
+                        key: 'action',
+                        title: '操作',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Button', {
+                                    props: {
+                                        type: 'info',
+                                        size: 'small',
+                                        icon: 'edit'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.type.id = params.row.id;
+                                            this.type.editModal = true;
+                                            this.getTypeById(params.row.id);
+                                        }
+                                    }
+                                }, '编辑'),
+                                h('Poptip', {
+                                    props: {
+                                        confirm: true,
+                                        title: '确定要删除这条数据吗?',
+                                        transfer: true
+                                    },
+                                    on: {
+                                        'on-ok': () => {
+                                            this.deleteType(params.row.id, params.index)
+                                        }
+                                    }
+                                }, [
+                                    h('Button', {
+                                        style: {
+                                            marginRight: '5px'
+                                        },
+                                        props: {
+                                            type: 'error',
+                                            size: 'small',
+                                            placement: 'top',
+                                            icon: 'trash-a'
+                                        }
+                                    }, '删除')
+                                ])
+                            ])
+                        }
+                    }
+                ],
             }
         },
         created() {
-            this.getAreaList();
+            this.getAreaList(); // 区域
+            this.getTypeList(); // 类型
         },
         methods: {
-            resetAddAreaModel () {
+            resetAddAreaModel() {
                 this.handleReset('addAreaForm');
             },
-            handleSubmit (name) {
+            resetAddTypeModel() {
+                this.editModal = false;
+                this.handleReset('addTypeForm');
+            },
+            handleSubmit(name) {
                 let _this = this;
                 _this.addAreaLoading = true;
                 _this.editAreaLoading = true;
@@ -235,14 +384,14 @@
                             });
                         }
                     } else {
-                        
+
                     }
                 });
             },
             handleReset(name) {
                 this.$refs[name].resetFields();
             },
-            getAreaList () {
+            getAreaList() {
                 let _this = this;
                 let params = {
                     page: _this.area.page,
@@ -262,14 +411,96 @@
                 this.area.page = value;
                 this.getAreaList();
             },
-            getAreaById (id) {
+            getTypeList() {
+                let _this = this;
+                let params = {
+                    page: _this.type.page,
+                    school_id: _this.school_id
+                };
+                axios.get(`${path}/api/type`, {params}).then(response => {
+                    _this.typeList = response.data.data;
+                    _this.type.total = response.data.meta.total;
+                    _this.type.total > 0 ? _this.type.showPage = true : _this.type.showPage = false;
+                    _this.type.loading = false;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
+            typeChangePage(value) {
+                this.type.loading = true;
+                this.type.page = value;
+                this.getTypeList();
+            },
+            typeHandleSubmit(name) {
+                let _this = this;
+                _this.addTypeLoading = true;
+                _this.editTypeLoading = true;
+                _this.$refs[name].validate((valid) => {
+                    if (valid) {
+                        if (_this.type.id > 0) {
+                            let formData = {
+                                'name': _this.editTypeForm.name
+                            };
+                            axios.patch(`${path}/api/type/${_this.type.id}`, formData).then(response => {
+                                _this.$Message.success('更新成功');
+                                setTimeout(function () {
+                                    _this.editTypeLoading = false;
+                                    _this.getTypeList();
+                                    _this.handleReset(name);
+                                    _this.type.editModal = false;
+                                }, 1000);
+                                _this.addTypeLoading = false;
+                                _this.editAreaLoading = false;
+                            }).catch(error => {
+                                _this.addTypeLoading = false;
+                                _this.editTypeLoading = false;
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
+                            });
+                        } else {
+                            let formData = {
+                                'name': _this.addTypeForm.name,
+                                'school_id': _this.school_id
+                            };
+                            axios.post(`${path}/api/type`, formData).then(response => {
+                                _this.$Message.success('新增成功');
+                                setTimeout(function () {
+                                    _this.addTypeLoading = false;
+                                    _this.getTypeList();
+                                    _this.handleReset(name);
+                                    _this.type.addModal = false;
+                                }, 1000);
+                                _this.addTypeLoading = false;
+                                _this.editTypeLoading = false;
+                            }).catch(error => {
+                                _this.addTypeLoading = false;
+                                _this.editTypeLoading = false;
+                                _this.$Message.error(error.response.data.msg || '系统出错，请稍后再试。');
+                            });
+                        }
+                    } else {
+
+                    }
+                });
+            },
+            getAreaById(id) {
 
             },
-            deleteArea () {
+            getTypeById(id) {
+                axios.get(`${path}/api/type/${id}`).then(response => {
+                    let data = response.data;
+                    this.editTypeForm.name = data.name;
+                }).catch(error => {
+                    console.log(error);
+                })
+            },
+            deleteArea() {
 
             },
-            changeAreaStatus () {
-                
+            deleteType() {
+
+            },
+            changeAreaStatus() {
+
             }
         }
     };

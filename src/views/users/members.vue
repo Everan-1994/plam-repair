@@ -271,7 +271,7 @@
                     this.$Message.success('身份变更成功', 1.5);
                     this.getMemberList();
                 }).catch(error => {
-                    this.$Message.error('身份变更失败', 1.5);
+                    this.$Message.error('已存在工单关系，身份变更失败。', 2);
                     this.getMemberList();
                 });
             },

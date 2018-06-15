@@ -21,7 +21,7 @@
     <span style="">
                 <span>申报类型：</span>
                 <Select v-model="orderType" style="width:100px">
-                    <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.value }}</Option>
+                    <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
                 </Select>
                 <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
                 <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置</Button>
@@ -74,7 +74,6 @@
         },
         data() {
             return {
-                type: ['水务', '电务', '木工', '其他'],
                 color: ['green', 'red', 'blue', 'yellow'],
                 total: 0,
                 page: 1,
@@ -91,24 +90,7 @@
                 examineForm: {
                     repair: ''
                 },
-                types: [
-                    {
-                        id: 0,
-                        value: '水务'
-                    },
-                    {
-                        id: 1,
-                        value: '电务'
-                    },
-                    {
-                        id: 2,
-                        value: '木工'
-                    },
-                    {
-                        id: 3,
-                        value: '其他'
-                    },
-                ],
+                types: [],
                 open_close: {
                     open: '开启',
                     close: '关闭'
@@ -175,9 +157,9 @@
                             return h('Tag', {
                                 props: {
                                     type: 'dot',
-                                    color: this.color[params.row.type]
+                                    color: this.color[params.row.type.id] || 'default'
                                 }
-                            }, this.type[params.row.type])
+                            }, params.row.type.name)
                         }
                     },
                     {
@@ -231,8 +213,21 @@
         created() {
             // 获取工单
             this.getOrderList();
+            this.getType();
         },
         methods: {
+            getType() {
+                let school_id = Cookie.get('school_id');
+                let _this = this;
+                let params = {
+                    school_id: school_id
+                };
+                axios.get(path + '/api/type', {params}).then(response => {
+                    _this.types = response.data.data;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             getOrderList() {
                 let school_id = Cookie.get('school_id');
                 let _this = this;

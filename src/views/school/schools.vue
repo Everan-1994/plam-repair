@@ -52,7 +52,7 @@
                         <div style="display: block;width: 100%;">
                             <Upload
                                     name="images"
-                                    action="https://repair.lzdu.com/api/upload/image"
+                                    action="http://repair-api.wei/api/upload/image"
                                     :on-format-error="handleFormatError"
                                     :on-progress="handleProgress"
                                     :format="['jpg','jpeg','png']"
@@ -96,8 +96,8 @@
                     <Form-item label="LOGO" prop="logo">
                         <div style="display: block;width: 100%;">
                             <Upload
-                                    name="logo"
-                                    action="https://repair.lzdu.com/api/upload/image"
+                                    name="images"
+                                    action="http://repair-api.wei/api/upload/image"
                                     :on-format-error="handleFormatError"
                                     :on-progress="handleProgress"
                                     :format="['jpg','jpeg','png']"

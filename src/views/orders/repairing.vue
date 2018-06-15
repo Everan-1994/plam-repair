@@ -21,7 +21,7 @@
             <span style="">
                 <span>申报类型：</span>
                 <Select v-model="orderType" style="width:100px">
-                    <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.value }}</Option>
+                    <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
                 </Select>
                 <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
                 <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置</Button>
@@ -104,7 +104,6 @@
         },
         data() {
             return {
-                type: ['水务', '电务', '木工', '其他'],
                 color: ['green', 'red', 'blue', 'yellow'],
                 total: 0,
                 page: 1,
@@ -122,24 +121,7 @@
                 examineForm: {
                     repair: ''
                 },
-                types: [
-                    {
-                        id: 0,
-                        value: '水务'
-                    },
-                    {
-                        id: 1,
-                        value: '电务'
-                    },
-                    {
-                        id: 2,
-                        value: '木工'
-                    },
-                    {
-                        id: 3,
-                        value: '其他'
-                    },
-                ],
+                types: [],
                 open_close: {
                     open: '开启',
                     close: '关闭'
@@ -166,8 +148,6 @@
                     {
                         key: 'avatar',
                         title: '用户',
-                        align: 'center',
-                        width: 200,
                         render: (h, params) => {
                             return h('div', [
                                 h('Avatar', {
@@ -206,16 +186,15 @@
                             return h('Tag', {
                                 props: {
                                     type: 'dot',
-                                    color: this.color[params.row.type]
+                                    color: this.color[params.row.type.id] || 'default'
                                 }
-                            }, this.type[params.row.type])
+                            }, params.row.type.name)
                         }
                     },
                     {
                         key: 'time',
                         title: '申报日期',
                         align: 'center',
-                        width: 150,
                         sortable: true,
                         render: (h, params) => {
                             return h('div', [
@@ -231,9 +210,44 @@
                         }
                     },
                     {
+                        key: 'repair',
+                        title: '维修员',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Avatar', {
+                                    props: {
+                                        src: params.row.repair.avatar
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 10px;'
+                                }, params.row.repair.truename)
+                            ])
+                        }
+                    },
+                    {
+                        key: 'ptime',
+                        title: '派工时间',
+                        align: 'center',
+                        sortable: true,
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'clock'
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 3px;'
+                                }, util.diffForHumans(params.row.updated_at))
+                            ])
+                        }
+                    },
+                    {
                         key: 'action',
                         title: '操作',
                         align: 'center',
+                        width: 180,
                         render: (h, params) => {
                             return h('div', [
                                 h('Button', {
@@ -256,7 +270,7 @@
                                     props: {
                                         type: 'info',
                                         size: 'small',
-                                        icon: 'edit'
+                                        icon: 'paper-airplane'
                                     },
                                     style: {
                                         marginRight: '5px'
@@ -267,7 +281,7 @@
                                             this.examineModal = true;
                                         }
                                     }
-                                }, '审核')
+                                }, '派工')
                             ])
                         }
                     }
@@ -278,8 +292,21 @@
         created() {
             // 获取新工单
             this.getOrderList();
+            this.getType();
         },
         methods: {
+            getType() {
+                let school_id = Cookie.get('school_id');
+                let _this = this;
+                let params = {
+                    school_id: school_id
+                };
+                axios.get(path + '/api/type', {params}).then(response => {
+                    _this.types = response.data.data;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             getOrderList() {
                 let school_id = Cookie.get('school_id');
                 let _this = this;

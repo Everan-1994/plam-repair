@@ -45,7 +45,7 @@
                               :key="item.id"
                               :icon="icon[item.type]"
                               :title="title[item.type]"
-                              :content="item.content || '-- ' + created_at"></Step>
+                              :content="item.content + '['+ item.user.truename +']'"></Step>
                     </Steps>
                 </div>
             </p>
