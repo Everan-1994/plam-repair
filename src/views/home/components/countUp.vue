@@ -101,7 +101,9 @@ export default {
             let res = transformValue(val);
             let endVal = res.val;
             this.unit = res.unit;
-            this.demo.update(endVal);
+            // this.demo.update(endVal);
+            let demo = {};
+            this.demo = demo = new CountUp(this.idName, this.startVal, endVal, this.decimals, this.duration, this.options);
         }
     }
 };

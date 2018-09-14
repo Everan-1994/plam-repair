@@ -17,13 +17,17 @@
         <Row>
             <div class="step-header-con" style="text-align: center;">
                 <strong class="fcolor">申报人：</strong>
-                <Avatar v-if="avatar" :src="avatar"></Avatar>
+                『 <Avatar v-if="avatar" :src="avatar"></Avatar>
                 <Icon type="man"></Icon>
-                {{ name }}
+                {{ name }} 』
 
                 <strong class="fcolor">申报时间：</strong>
-                <Icon type="clock"></Icon>
-                {{ created_at }}
+                『 <Icon type="clock"></Icon>
+                {{ created_at }} 』
+
+                <strong class="fcolor">联系方式：</strong>
+                『 <Icon type="iphone"></Icon>
+                {{ phone }} 』
 
             </div>
 
@@ -90,6 +94,7 @@
                 name: '',
                 created_at: '',
                 content: '',
+                phone: '',
                 processes: {},
                 evaluate: {},
                 title: ['申报', '驳回', '派工', '完工', '申诉', '评价'],
@@ -124,6 +129,7 @@
                     _this.spinShow = false;
                     _this.avatar = detail.user.avatar;
                     _this.name = detail.user.name;
+                    _this.phone = detail.user.phone;
                     _this.created_at = util.diffForHumans(detail.created_at);
                     _this.content = detail.content;
                     _this.processes = detail.processes;

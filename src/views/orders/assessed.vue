@@ -24,7 +24,7 @@
                     <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
                 </Select>
                 <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
-                <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置</Button>
+                <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
             </span>
     </Col>
   </Row>

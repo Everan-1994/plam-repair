@@ -8,9 +8,10 @@
         align-items: center;
         justify-content: center;
 
-        .ivu-modal {
-            top: 0;
-        }
+    .ivu-modal {
+        top: 0;
+    }
+
     }
 
     .ivu-form-item {
@@ -27,12 +28,13 @@
                             <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
                         </Select>
                         <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
-                        <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置</Button>
+                        <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
+                        <Button type="success" icon="share" class="mleft" @click="exportData">导出数据</Button>
                     </span>
             </Col>
         </Row>
         <Row class="margin-top-10">
-            <Table :columns="columns" :data="orderList" :loading="loading"></Table>
+            <Table :columns="columns" :data="orderList" :loading="loading" ref="tableCsv"></Table>
             <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
                 <div style="float: right;">
                     <Page :total="total"
@@ -70,7 +72,8 @@
             <div style="text-align:center">
                 <Form ref="examineForm" :model="examineForm">
                     <Form-item>
-                        <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 10}" placeholder="填写驳回原因"></Input>
+                        <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 10}"
+                               placeholder="填写驳回原因"></Input>
                     </Form-item>
                 </Form>
             </div>
@@ -95,7 +98,8 @@
                                 size="large"
                                 placeholder="请选择派遣的维修员">
                             <Option v-for="(item, index) in repairs" :value="item.id" :key="index">
-                                <Icon type="android-contact"></Icon> {{ item.truename }}
+                                <Icon type="android-contact"></Icon>
+                                {{ item.truename }}
                             </Option>
                         </Select>
                     </Form-item>
@@ -117,6 +121,8 @@
     import Cookie from 'js-cookie';
 
     import orderDetail from './order-detail';
+
+    import table2excel from '@/libs/table2excel.js';
 
     export default {
         name: 'new-order',
@@ -159,6 +165,24 @@
                 },
                 columns: [
                     {
+                        key: 'avatar',
+                        title: '用户',
+                        fixed: 'left',
+                        width: 150,
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Avatar', {
+                                    props: {
+                                        src: params.row.user.avatar
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 10px;'
+                                }, params.row.user.name)
+                            ])
+                        }
+                    },
+                    {
                         key: 'order',
                         title: '工单号',
                         align: 'center',
@@ -177,19 +201,18 @@
                         }
                     },
                     {
-                        key: 'avatar',
-                        title: '用户',
-                        width: 200,
+                        key: 'content',
+                        title: '申报内容',
                         render: (h, params) => {
                             return h('div', [
-                                h('Avatar', {
+                                h('Icon', {
                                     props: {
-                                        src: params.row.user.avatar
+                                        type: 'compose'
                                     }
                                 }),
                                 h('span', {
-                                    style: 'margin-left: 10px;'
-                                }, params.row.user.name)
+                                    style: 'margin-left: 3px;'
+                                }, params.row.content)
                             ])
                         }
                     },
@@ -325,6 +348,10 @@
                     }
                 ],
                 orderList: [],
+                selectMinRow: 1,
+                selectMaxRow: 100,
+                selectMinCol: 1,
+                selectMaxCol: 6,
             }
         },
         created() {
@@ -461,7 +488,39 @@
                 } else {
                     _this.repairs = [];
                 }
-            }
+            },
+            exportData() {
+                const _this = this;
+                var orders = [];
+                _this.orderList.forEach((val) => {
+                    orders.push({
+                        avatar: val.user.name,
+                        order: val.order,
+                        content: val.content,
+                        area: val.area.name,
+                        type: val.type.name,
+                        time: util.diffForHumans(val.created_at)
+                    });
+                });
+
+                _this.$refs.tableCsv.exportCsv({
+                    filename: _this.getDate() + ' 工单表',
+                    columns: _this.columns.filter((col, index) => index >= _this.selectMinCol - 1 && index <= _this.selectMaxCol - 1),
+                    data: orders.filter((data, index) => index >= _this.selectMinRow - 1 && index <= _this.selectMaxRow - 1)
+                });
+            },
+            getDate() {
+                let dd = new Date();
+                let n = 0;
+                dd.setDate(dd.getDate() + n);
+                let y = dd.getFullYear();
+                let m = dd.getMonth() + 1;
+                let d = dd.getDate();
+                m = m < 10 ? "0" + m : m;
+                d = d < 10 ? "0" + d : d;
+                let day = y + "-" + m + "-" + d;
+                return day;
+            },
         }
     };
 </script>
