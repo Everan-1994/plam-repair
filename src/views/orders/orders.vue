@@ -9,7 +9,7 @@
 </style>
 <template>
   <Card>
-      <Tabs>
+      <Tabs :animated="false">
           <TabPane label="新工单" icon="clipboard">
               <new-order></new-order>
           </TabPane>

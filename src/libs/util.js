@@ -7,7 +7,7 @@ let util = {
 
 };
 util.title = function (title) {
-    title = title || '掌上报修 - 凯悦科技';
+    title = title || '掌上报修 - 联锦科技';
     window.document.title = title;
 };
 

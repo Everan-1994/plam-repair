@@ -37,12 +37,6 @@ export const page500 = {
     component: () => import('@/views/error-page/500.vue')
 };
 
-export const preview = {
-    path: '/preview',
-    name: 'preview',
-    component: () => import('@/views/form/article-publish/preview.vue')
-};
-
 export const locking = {
     path: '/locking',
     name: 'locking',
@@ -84,7 +78,7 @@ export const appRouter = [
         component: Main,
         children: [
             { path: 'customers', title: '客户管理', name: 'customers', access: 1, component: () => import('@/views/users/customers.vue') },
-            { path: 'admins', title: '管理员', name: 'admins', access: [1, 2], component: () => import('@/views/users/admins.vue') },
+            // { path: 'admins', title: '管理员', name: 'admins', access: [1, 2], component: () => import('@/views/users/admins.vue') },
             { path: 'repairmans', title: '维修员', name: 'repairmans', access: 2, component: () => import('@/views/users/repairmans.vue') },
             { path: 'members', title: '用户管理', name: 'members', access: 2, component: () => import('@/views/users/members.vue') }
         ]
@@ -110,7 +104,18 @@ export const appRouter = [
         children: [
             { path: 'base', title: '基本设置', name: 'base_index', access: 2, component: () => import('@/views/systems/base.vue') },
         ]
-    }
+    },
+    {
+        path: '/article',
+        icon: 'ios-bookmarks',
+        name: 'article',
+        title: '文章管理',
+        access: [1],
+        component: Main,
+        children: [
+            { path: 'article', title: '文章管理', name: 'article_default', access: 1, component: () => import('@/views/articles/articles.vue') }
+        ]
+    },
 
 ];
 
@@ -118,7 +123,6 @@ export const appRouter = [
 export const routers = [
     loginRouter,
     otherRouter,
-    preview,
     locking,
     ...appRouter,
     page500,

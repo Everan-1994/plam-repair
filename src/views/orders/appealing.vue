@@ -46,16 +46,65 @@
       </div>
     </div>
   </Row>
-  <Modal v-model="detailModal" class-name="vertical-center-modal" :mask-closable="false" :width="60"
-         :styles="{top: '20px'}" :scrollable="false"
-         @on-cancel="id = 0">
-    <p slot="header" style="color:#f60;text-align:center">
-      <Icon type="flag"></Icon>
-      <span>申报详情</span>
-    </p>
-    <order-detail :id="id"></order-detail>
-    <div slot="footer"></div>
-  </Modal>
+      <Modal v-model="detailModal" class-name="vertical-center-modal" :mask-closable="false" :width="60"
+             :styles="{top: '20px'}" :scrollable="false"
+             @on-cancel="id = 0">
+        <p slot="header" style="color:#f60;text-align:center">
+          <Icon type="flag"></Icon>
+          <span>申报详情</span>
+        </p>
+        <order-detail :id="id"></order-detail>
+        <div slot="footer"></div>
+      </Modal>
+
+    <!--驳回-->
+    <Modal v-model="examineModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"
+           :styles="{top: '20px'}" :scrollable="false">
+        <p slot="header" style="color: #1F90CD;text-align: center">
+            <Icon type="edit"></Icon>
+            <span>驳回</span>
+        </p>
+        <div style="text-align:center">
+            <Form ref="examineForm" :model="examineForm">
+                <Form-item>
+                    <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 10}" placeholder="填写驳回原因"></Input>
+                </Form-item>
+            </Form>
+        </div>
+        <div slot="footer">
+            <Button type="primary" @click="rejectSubmit" icon="paper-airplane" size="large" long
+                    :loading="reject"> 提 交
+            </Button>
+        </div>
+    </Modal>
+    <!--派工-->
+    <Modal v-model="dispatchModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"
+           :styles="{top: '20px'}" :scrollable="false">
+        <p slot="header" style="color: #39cd28;text-align: center">
+            <Icon type="android-bicycle"></Icon>
+            <span>派工</span>
+        </p>
+        <div style="text-align:center">
+            <Form ref="dispatchForm" :model="dispatchForm">
+                <Form-item>
+                    <Select v-model="dispatchForm.repair_id"
+                            filterable
+                            size="large"
+                            placeholder="请选择派遣的维修员">
+                        <Option v-for="(item, index) in repairs" :value="item.id" :key="index">
+                            <Icon type="android-contact"></Icon> {{ item.truename }}
+                        </Option>
+                    </Select>
+                </Form-item>
+            </Form>
+        </div>
+        <div slot="footer">
+            <Button type="primary" @click="dispatchSubmit" icon="paper-airplane" size="large" long
+                    :loading="dispatch"> 提 交
+            </Button>
+        </div>
+    </Modal>
+
   </Col>
 </template>
 
@@ -83,13 +132,24 @@
                 sort: 'desc',
                 showPage: false,
                 loading: true,
+                searchLoading: true, // 搜索维修员
                 detailModal: false, // 详情model
+                examineModal: false, // 审核model
+                dispatchModal: false, // 派工model
                 id: 0, // 申报id
+                truename: null, // 搜索的维修员名称
+                dispatchForm: {
+                    repair_id: null, // 维修员id
+                },
+                reject: false, //  驳回加载
+                dispatch: false, // 派工加载
+                examineForm: {
+                    content: null,
+                    repair: null
+                },
+                repairs: [], // 维修员
                 orderType: null,
                 open: 'one',
-                examineForm: {
-                    repair: ''
-                },
                 types: [],
                 open_close: {
                     open: '开启',
@@ -117,7 +177,6 @@
                     {
                         key: 'avatar',
                         title: '用户',
-                        align: 'center',
                         width: 200,
                         render: (h, params) => {
                             return h('div', [
@@ -202,7 +261,39 @@
                                             this.detailModal = true;
                                         }
                                     }
-                                }, '详情')
+                                }, '详情'),
+                                h('Button', {
+                                    props: {
+                                        type: 'warning',
+                                        size: 'small',
+                                        icon: 'close-circled'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.id = params.row.id;
+                                            this.examineModal = true;
+                                        }
+                                    }
+                                }, '驳回'),
+                                h('Button', {
+                                    props: {
+                                        type: 'info',
+                                        size: 'small',
+                                        icon: 'paper-airplane'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.id = params.row.id;
+                                            this.dispatchModal = true;
+                                        }
+                                    }
+                                }, '派工')
                             ])
                         }
                     }
@@ -214,6 +305,8 @@
             // 获取工单
             this.getOrderList();
             this.getType();
+            // 获取维修员
+            this.getRepair();
         },
         methods: {
             getType() {
@@ -224,6 +317,21 @@
                 };
                 axios.get(path + '/api/type', {params}).then(response => {
                     _this.types = response.data.data;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
+            getRepair() {
+                let school_id = Cookie.get('school_id');
+                let _this = this;
+                let params = {
+                    school_id: school_id,
+                    identify: 4,
+                    status: 1,
+                    truename: _this.truename
+                };
+                axios.get(path + '/api/member', {params}).then(response => {
+                    _this.repairs = response.data.data;
                 }).catch(error => {
                     console.log(error);
                 });
@@ -269,6 +377,53 @@
                 this.page = 1;
                 this.orderType = null;
                 this.getOrderList();
+            },
+            rejectSubmit() {
+                let formData = {
+                    order_id: this.id,
+                    content: this.examineForm.content,
+                    type: 1,
+                    order_status: 3
+                };
+                axios.put(path + '/api/processes', formData).then(response => {
+                    this.$Message.success('驳回成功');
+                    this.examineForm.content = '';
+                    this.examineModal = false;
+                    this.reject = false;
+                    this.getOrderList();
+                }).catch(error => {
+                    this.$Message.error('系统出错，请稍后再试。');
+                })
+            },
+            dispatchSubmit() {
+                let formData = {
+                    order_id: this.id,
+                    repair_id: this.dispatchForm.repair_id,
+                    order_status: 2 // 工单回到派工状态
+                };
+                axios.post(path + '/api/dispatch', formData).then(response => {
+                    this.$Message.success('派工成功');
+                    this.dispatchForm.id = 0;
+                    this.repair_id = 0;
+                    this.dispatchModal = false;
+                    this.dispatch = false;
+                    this.getOrderList();
+                }).catch(error => {
+                    this.$Message.error('系统出错，请稍后再试。');
+                })
+            },
+            searchRepair(query) {
+                let _this = this;
+                if (query !== '') {
+                    _this.searchLoading = true;
+                    setTimeout(() => {
+                        _this.searchLoading = false;
+                        _this.truename = query;
+                        _this.getRepair();
+                    }, 200);
+                } else {
+                    _this.repairs = [];
+                }
             }
         }
     };

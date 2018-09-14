@@ -76,6 +76,7 @@ new Vue({
                             router.push({name: 'login'});
                         }
                     });
+                    return false;
                     break;
                 // 如果响应中的 http code 为 400，那么就弹出一条错误提示给用户
                 case 400:

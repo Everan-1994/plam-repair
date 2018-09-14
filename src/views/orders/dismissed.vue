@@ -117,7 +117,6 @@
                     {
                         key: 'avatar',
                         title: '用户',
-                        align: 'center',
                         width: 200,
                         render: (h, params) => {
                             return h('div', [

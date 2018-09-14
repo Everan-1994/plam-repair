@@ -52,7 +52,7 @@
             </Card>
             </Col>
         </Row>
-        <Modal title="新增区域" v-model="area.addModal" :mask-closable="false" width="400" @on-cancel="resetAddAreaModel">
+        <Modal title="新增区域" v-model="area.addModal" :mask-closable="false" width="400" @on-cancel="resetAreaModel('addAreaForm')">
             <div>
                 <Form ref="addAreaForm" :model="addAreaForm" :label-width="80" :rules="area_rules"
                       style="margin-right: 25px;">
@@ -70,6 +70,29 @@
                                 :loading="addAreaLoading"> 提 交
                         </Button>
                         <Button type="ghost" @click="handleReset('addAreaForm')" style="margin-left: 8px">Reset</Button>
+                    </Form-item>
+                </Form>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+        <Modal title="编辑区域" v-model="area.editModal" :mask-closable="false" width="400" @on-cancel="resetAreaModel('editAreaForm')">
+            <div>
+                <Form ref="editAreaForm" :model="editAreaForm" :label-width="80" :rules="area_rules"
+                      style="margin-right: 25px;">
+                    <Form-item label="区域名称" prop="name">
+                        <Input v-model="editAreaForm.name" placeholder="请输入区域名称"/>
+                    </Form-item>
+                    <Form-item label="状态" prop="status">
+                        <i-switch v-model="editAreaForm.status" size="large" :true-value="1" :false-value="2">
+                            <span slot="open">正常</span>
+                            <span slot="close">禁用</span>
+                        </i-switch>
+                    </Form-item>
+                    <Form-item style="text-align: right;">
+                        <Button type="primary" @click="handleSubmit('editAreaForm')" icon="paper-airplane"
+                                :loading="addAreaLoading"> 提 交
+                        </Button>
+                        <Button type="ghost" @click="handleReset('editAreaForm')" style="margin-left: 8px">Reset</Button>
                     </Form-item>
                 </Form>
             </div>
@@ -223,7 +246,7 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.id = params.row.id;
+                                            this.area.id = params.row.id;
                                             this.area.editModal = true;
                                             this.getAreaById(params.row.id);
                                         }
@@ -327,8 +350,8 @@
             this.getTypeList(); // 类型
         },
         methods: {
-            resetAddAreaModel() {
-                this.handleReset('addAreaForm');
+            resetAreaModel(name) {
+                this.handleReset(name);
             },
             resetAddTypeModel() {
                 this.editModal = false;
@@ -483,7 +506,13 @@
                 });
             },
             getAreaById(id) {
-
+                axios.get(`${path}/api/area/${id}`).then(response => {
+                    let data = response.data;
+                    this.editAreaForm.name = data.name;
+                    this.editAreaForm.status = data.status;
+                }).catch(error => {
+                    console.log(error);
+                })
             },
             getTypeById(id) {
                 axios.get(`${path}/api/type/${id}`).then(response => {
@@ -493,14 +522,50 @@
                     console.log(error);
                 })
             },
-            deleteArea() {
-
+            deleteArea(id, index) {
+                axios.delete(`${path}/api/area/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.remove(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('删除失败', 1.5);
+                })
             },
-            deleteType() {
-
+            remove (index) {
+                this.areaList.splice(index, 1);
+                this.area.total-- ;
             },
-            changeAreaStatus() {
-
+            deleteType(id, index) {
+                axios.delete(`${path}/api/type/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.removeType(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('删除失败', 1.5);
+                })
+            },
+            removeType (index) {
+                this.typeList.splice(index, 1);
+                this.type.total-- ;
+            },
+            changeAreaStatus(id, value) {
+                this.$Modal.confirm({
+                    title: '温馨提示',
+                    content: '<h3>确定要进行当前操作吗？</h3>',
+                    onOk: () => {
+                        axios.patch(path + `/api/area/status/${id}`, {
+                            status: value
+                        }).then(response => {
+                            this.$Message.success('状态变更成功', 1.5);
+                        }).catch(error => {
+                            this.$Message.error('状态变更失败', 1.5);
+                            this.getAreaList();
+                        })
+                    },
+                    onCancel: () => {
+                        this.getAreaList();
+                    }
+                });
             }
         }
     };

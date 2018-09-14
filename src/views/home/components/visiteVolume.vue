@@ -4,15 +4,35 @@
 
 <script>
 import echarts from 'echarts';
+
+import axios from 'axios';
+import {path} from './../../../helpers/path';
+import JWT from './../../../helpers/jwt';
+import Cookies from 'js-cookie';
+
 export default {
     name: 'visiteVolume',
     data () {
         return {
-            //
+            data: []
         };
     },
     mounted () {
         this.$nextTick(() => {
+            const _this = this;
+            const school_id = Cookies.get('school_id');
+
+            axios.get(`${path}/api/week/order?school_id=${school_id}`).then(response => {
+                _this.data = response.data;
+                _this.getWeekOrder();
+            }).catch(error => {
+                console.log(error);
+            });
+        });
+    },
+    methods: {
+        getWeekOrder() {
+            const _this = this;
             let visiteVolume = echarts.init(document.getElementById('visite_volume_con'));
             let xAxisData = [];
             let data1 = [];
@@ -43,23 +63,31 @@ export default {
                 },
                 yAxis: {
                     type: 'category',
-                    data: ['Mon', 'Tues', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+                    data: [
+                        _this.data[6]['days'],
+                        _this.data[5]['days'],
+                        _this.data[4]['days'],
+                        _this.data[3]['days'],
+                        _this.data[2]['days'],
+                        _this.data[1]['days'],
+                        _this.data[0]['days'],
+                    ],
                     nameTextStyle: {
                         color: '#c3c3c3'
                     }
                 },
                 series: [
                     {
-                        name: '访问量',
+                        name: '申报量',
                         type: 'bar',
                         data: [
-                            {value: 453682, name: 'Mon', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 879545, name: 'Tues', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 2354678, name: 'Wed', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 1598403, name: 'Thur', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 543250, name: 'Fri', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 1305923, name: 'Sat', itemStyle: {normal: {color: '#2d8cf0'}}},
-                            {value: 1103456, name: 'Sun', itemStyle: {normal: {color: '#2d8cf0'}}}
+                            {value: _this.data[6]['count'], name: _this.data[6]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[5]['count'], name: _this.data[5]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[4]['count'], name: _this.data[4]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[3]['count'], name: _this.data[3]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[2]['count'], name: _this.data[2]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[1]['count'], name: _this.data[1]['days'], itemStyle: {normal: {color: '#2d8cf0'}}},
+                            {value: _this.data[0]['count'], name: _this.data[0]['days'], itemStyle: {normal: {color: '#2d8cf0'}}}
                         ]
                     }
                 ]
@@ -70,7 +98,8 @@ export default {
             window.addEventListener('resize', function () {
                 visiteVolume.resize();
             });
-        });
+            _this.$emit('rdweek', false);
+        }
     }
 };
 </script>

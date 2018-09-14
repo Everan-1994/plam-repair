@@ -11,6 +11,13 @@
           <Icon type="ios-people"></Icon>
           维修员列表
         </p>
+        <Row>
+          <Col span="24">
+          <span style="">
+            <Button type="primary" style="float: right;" icon="android-sync"  @click="refresh">刷新</Button>
+          </span>
+          </Col>
+        </Row>
         <Row class="margin-top-10">
           <Table :columns="columns" :data="RepairmanList" :loading="loading"></Table>
           <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
@@ -53,6 +60,8 @@
                 sort: '',
                 showPage: false,
                 loading: true,
+                sex: ['男', '女'],
+                color: ['green', 'red'],
                 open_close: {
                     open: '开启',
                     close: '关闭'
@@ -79,6 +88,26 @@
                                     style: 'margin-left: 10px;'
                                 }, params.row.name)
                             ])
+                        }
+                    },
+                    {
+                        key: 'truename',
+                        title: '姓名',
+                        align: 'center',
+                        width: 80
+                    },
+                    {
+                        key: 'sex',
+                        title: '性别',
+                        align: 'center',
+                        width: 120,
+                        render: (h, params) => {
+                            return h('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: this.color[params.row.sex - 1]
+                                }
+                            }, this.sex[params.row.sex - 1])
                         }
                     },
                     {
@@ -115,6 +144,7 @@
                         key: 'action',
                         title: '操作',
                         align: 'center',
+                        width: 280,
                         render: (h, params) => {
                             return h('div', [
                                 h('Button', {
@@ -128,15 +158,16 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.id = params.row.id;
-                                            this.getRepairmansById(params.row.id);
+                                            this.$Message.warning('此功能升级中', 1.5);
+//                                            this.id = params.row.id;
+//                                            this.getRepairmansById(params.row.id);
                                         }
                                     }
                                 }, '详情'),
                                 h('Poptip', {
                                     props: {
                                         confirm: true,
-                                        title: '确定要将该用户变为『维修员』吗?',
+                                        title: '确定要将该『维修员』变为『用户』吗?',
                                         transfer: true
                                     },
                                     on: {
@@ -278,8 +309,12 @@
                     this.$Message.success('操作成功', 1.5);
                 }).catch(error => {
                     this.$Message.error('操作失败', 1.5);
-                    this.getMemberList();
+                    this.getRepairmansList();
                 })
+            },
+            refresh() {
+                this.loading = true;
+                this.getRepairmansList();
             }
         }
     }

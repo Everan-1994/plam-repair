@@ -11,6 +11,13 @@
           <Icon type="ios-people-outline"></Icon>
           用户列表
         </p>
+        <Row>
+          <Col span="24">
+          <span style="">
+            <Button type="primary" style="float: right;" icon="android-sync"  @click="refresh">刷新</Button>
+          </span>
+          </Col>
+        </Row>
         <Row class="margin-top-10">
           <Table :columns="columns" :data="memberList" :loading="loading"></Table>
           <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
@@ -32,6 +39,20 @@
       </Card>
       </Col>
     </Row>
+    <Modal
+            v-model="addNameModel"
+            width="350"
+            title="维修员姓名"
+            @on-ok="changeMIdentify"
+            @on-cancel="cancelModel">
+      <Row type="flex" justify="center">
+        <Input v-model="repair_name" icon="compose" placeholder="请输入姓名" style="width: 200px" />
+      </Row>
+      <Row slot="footer">
+        <Button type="text" @click="cancelModel">取消</Button>
+        <Button type="primary" @click="changeMIdentify">提交</Button>
+      </Row>
+    </Modal>
   </div>
 </template>
 
@@ -51,8 +72,13 @@
                 pageSizeOpts: [10, 20, 30, 50],
                 order: '',
                 sort: '',
+                sex: ['男', '女'],
+                color: ['green', 'red'],
                 showPage: false,
                 loading: true,
+                user_id: 0,
+                addNameModel: false,
+                repair_name: null,
                 open_close: {
                     open: '开启',
                     close: '关闭'
@@ -79,6 +105,20 @@
                                     style: 'margin-left: 10px;'
                                 }, params.row.name)
                             ])
+                        }
+                    },
+                    {
+                        key: 'sex',
+                        title: '性别',
+                        align: 'center',
+                        width: 120,
+                        render: (h, params) => {
+                            return h('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: this.color[params.row.sex - 1]
+                                }
+                            }, this.sex[params.row.sex - 1])
                         }
                     },
                     {
@@ -119,6 +159,7 @@
                         key: 'action',
                         title: '操作',
                         align: 'center',
+                        width: 280,
                         render: (h, params) => {
                             return h('div', [
                                 h('Button', {
@@ -132,20 +173,22 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.id = params.row.id;
-                                            this.getMemberById(params.row.id);
+                                            this.$Message.warning('此功能升级中', 1.5);
+//                                            this.id = params.row.id;
+//                                            this.getMemberById(params.row.id);
                                         }
                                     }
                                 }, '详情'),
                                 h('Poptip', {
                                     props: {
                                         confirm: true,
-                                        title: '确定要将该用户变为『维修员』吗?',
+                                        title: '确定要将该『用户』变为『维修员』吗?',
                                         transfer: true
                                     },
                                     on: {
                                         'on-ok': () => {
-                                            this.changeIdentify(params.row.id)
+                                            this.user_id = params.row.id;
+                                            this.changeIdentify()
                                         }
                                     }
                                 }, [
@@ -262,13 +305,28 @@
                     }
                 });
             },
-            changeIdentify(id) {
+            cancelModel() {
+                this.addNameModel = false;
+                this.user_id = 0;
+                this.repair_name = null;
+            },
+            changeIdentify() {
+                this.addNameModel = true;
+            },
+            changeMIdentify() {
+                const  _this = this;
+                if (_this.repair_name == null) {
+                    this.$Message.error('请填写姓名', 2);
+                    return;
+                }
                 axios.patch(`${path}/api/member`, {
-                    user_id: id,
+                    user_id: _this.user_id,
                     identify: 4,
-                    type: 1 // 用户
+                    type: 1, // 用户
+                    repair_name: _this.repair_name
                 }).then(response => {
                     this.$Message.success('身份变更成功', 1.5);
+                    this.cancelModel();
                     this.getMemberList();
                 }).catch(error => {
                     this.$Message.error('已存在工单关系，身份变更失败。', 2);
@@ -285,6 +343,10 @@
                     this.$Message.error('操作失败', 1.5);
                     this.getMemberList();
                 })
+            },
+            refresh() {
+                this.loading = true;
+                this.getMemberList();
             }
         }
     }

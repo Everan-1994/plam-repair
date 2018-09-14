@@ -3,16 +3,16 @@
     margin-left: 10px;
   }
 
-  .vertical-center-modal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /*.vertical-center-modal {*/
+    /*display: flex;*/
+    /*align-items: center;*/
+    /*justify-content: center;*/
 
-  .ivu-modal {
-    top: 0;
-  }
+  /*.ivu-modal {*/
+    /*top: 0;*/
+  /*}*/
 
-  }
+  /*}*/
 </style>
 <template>
   <Col span="24">
@@ -46,8 +46,8 @@
       </div>
     </div>
   </Row>
-  <Modal v-model="detailModal" class-name="vertical-center-modal" :mask-closable="false" :width="60"
-         :styles="{top: '20px'}" :scrollable="false"
+  <Modal v-model="detailModal" class-name="vertical-center-modal" :mask-closable="false" :width="70"
+         :styles="{top: '10px'}" :scrollable="false"
          @on-cancel="id = 0">
     <p slot="header" style="color:#f60;text-align:center">
       <Icon type="flag"></Icon>
@@ -117,7 +117,6 @@
                     {
                         key: 'avatar',
                         title: '用户',
-                        align: 'center',
                         width: 200,
                         render: (h, params) => {
                             return h('div', [

@@ -56,35 +56,32 @@
         <order-detail :id="id"></order-detail>
         <div slot="footer"></div>
     </Modal>
-    <Modal v-model="examineModal" class-name="vertical-center-modal" :mask-closable="false" :width="30"
+    <!--派工-->
+    <Modal v-model="dispatchModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"
            :styles="{top: '20px'}" :scrollable="false">
-        <p slot="header" style="color: #1F90CD;text-align: center">
-            <Icon type="edit"></Icon>
-            <span>审核 && 派工</span>
+        <p slot="header" style="color: #39cd28;text-align: center">
+            <Icon type="android-bicycle"></Icon>
+            <span>派工</span>
         </p>
-        <Tabs value="pass1">
-            <TabPane label="审核不通过给予驳回" name="pass1">
-                <Form ref="examineForm" :model="examineForm" :label-width="80">
-                    <FormItem label="审核内容">
-                        <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 5}"
-                               placeholder="填写驳回原因"></Input>
-                    </FormItem>
-                </Form>
-            </TabPane>
-            <TabPane label="审核通过给予派工" name="pass2">
-                <Form ref="examineForm" :model="examineForm" :label-width="80">
-                    <FormItem label="维修员">
-                        <Select v-model="examineForm.repair" filterable placeholder="请选择维修员">
-                            <Option value="beijing">New York</Option>
-                            <Option value="shanghai">London</Option>
-                            <Option value="shenzhen">Sydney</Option>
-                        </Select>
-                    </FormItem>
-                    <div style="height: 100px;"></div>
-                </Form>
-            </TabPane>
-        </Tabs>
-        <div slot="footer"></div>
+        <div style="text-align:center">
+            <Form ref="dispatchForm" :model="dispatchForm">
+                <Form-item>
+                    <Select v-model="dispatchForm.repair_id"
+                            filterable
+                            size="large"
+                            placeholder="请选择派遣的维修员">
+                        <Option v-for="(item, index) in repairs" :value="item.id" :key="index">
+                            <Icon type="android-contact"></Icon> {{ item.truename }}
+                        </Option>
+                    </Select>
+                </Form-item>
+            </Form>
+        </div>
+        <div slot="footer">
+            <Button type="primary" @click="dispatchSubmit" icon="paper-airplane" size="large" long
+                    :loading="dispatch"> 提 交
+            </Button>
+        </div>
     </Modal>
     </Col>
 </template>
@@ -114,14 +111,17 @@
                 showPage: false,
                 loading: true,
                 detailModal: false, // 详情model
-                examineModal: false, // 审核model
+                dispatchModal: false, // 派工model
                 id: 0, // 申报id
                 orderType: null,
                 open: 'one',
-                examineForm: {
-                    repair: ''
+                dispatchForm: {
+                    repair_id: null, // 维修员id
                 },
+                dispatch: false, // 派工加载
                 types: [],
+                repairs: [],
+                truename: null,
                 open_close: {
                     open: '开启',
                     close: '关闭'
@@ -278,7 +278,7 @@
                                     on: {
                                         click: () => {
                                             this.id = params.row.id;
-                                            this.examineModal = true;
+                                            this.dispatchModal = true;
                                         }
                                     }
                                 }, '派工')
@@ -293,8 +293,25 @@
             // 获取新工单
             this.getOrderList();
             this.getType();
+            // 获取维修员
+            this.getRepair();
         },
         methods: {
+            getRepair() {
+                let school_id = Cookie.get('school_id');
+                let _this = this;
+                let params = {
+                    school_id: school_id,
+                    identify: 4,
+                    status: 1,
+                    truename: _this.truename
+                };
+                axios.get(path + '/api/member', {params}).then(response => {
+                    _this.repairs = response.data.data;
+                }).catch(error => {
+                    console.log(error);
+                });
+            },
             getType() {
                 let school_id = Cookie.get('school_id');
                 let _this = this;
@@ -348,7 +365,23 @@
                 this.page = 1;
                 this.orderType = null;
                 this.getOrderList();
-            }
+            },
+            dispatchSubmit() {
+                let formData = {
+                    order_id: this.id,
+                    repair_id: this.dispatchForm.repair_id
+                };
+                axios.post(path + '/api/dispatch', formData).then(response => {
+                    this.$Message.success('派工成功');
+                    this.dispatchForm.id = 0;
+                    this.repair_id = 0;
+                    this.dispatchModal = false;
+                    this.dispatch = false;
+                    this.getOrderList();
+                }).catch(error => {
+                    this.$Message.error('系统出错，请稍后再试。');
+                })
+            },
         }
     };
 </script>

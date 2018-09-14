@@ -42,7 +42,7 @@
                             <Button @click="handleSubmit" type="primary" long :loading="loading">登录</Button>
                         </FormItem>
                     </Form>
-                    <p class="login-tip">欢迎使用凯悦科技 -- 掌上报修管理系统</p>
+                    <p class="login-tip">欢迎使用联锦科技 -- 掌上报修管理系统</p>
                 </div>
             </Card>
         </div>

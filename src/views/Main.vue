@@ -34,7 +34,7 @@
                 <div class="header-avator-con">
                     <full-screen v-model="isFullScreen" @on-change="fullscreenChange"></full-screen>
                     <lock-screen></lock-screen>
-                    <message-tip v-model="mesCount"></message-tip>
+                    <!--<message-tip v-model="mesCount"></message-tip>-->
                     <theme-switch></theme-switch>
                     
                     <div class="user-dropdown-menu-con">
@@ -45,8 +45,14 @@
                                     <Icon type="arrow-down-b"></Icon>
                                 </a>
                                 <DropdownMenu slot="list">
-                                    <DropdownItem name="ownSpace">个人中心</DropdownItem>
-                                    <DropdownItem name="loginout" divided>退出登录</DropdownItem>
+                                    <DropdownItem name="ownSpace">
+                                        <Icon type="android-person"></Icon>
+                                        个人中心
+                                    </DropdownItem>
+                                    <DropdownItem name="loginout" divided>
+                                        <Icon type="power"></Icon>
+                                        退出登录
+                                    </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
                             <Avatar :src="avatorPath" style="background: #619fe7;margin-left: 10px;"></Avatar>
