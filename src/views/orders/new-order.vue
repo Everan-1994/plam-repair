@@ -23,18 +23,20 @@
         <Row>
             <Col span="24" style="text-align: center; margin-bottom: 10px;">
             <span style="">
-                        <span>申报类型：</span>
-                        <Select v-model="orderType" style="width:100px">
-                            <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
-                        </Select>
-                        <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
-                        <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
-                        <Button type="success" icon="share" class="mleft" @click="exportData">导出数据</Button>
-                    </span>
+                    <span>申报类型：</span>
+                    <Select v-model="orderType" style="width:100px">
+                        <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
+                    </Select>
+                    <span class="mleft">日期范围：</span>
+                    <DatePicker type="daterange" placement="bottom-end" v-model="fdate" placeholder="选择时间范围" style="width: 200px"></DatePicker>
+                    <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
+                    <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
+                    <Button type="primary" icon="share" class="mleft" @click="exportData">导出工单</Button>
+                </span>
             </Col>
         </Row>
         <Row class="margin-top-10">
-            <Table :columns="columns" :data="orderList" :loading="loading" ref="tableCsv"></Table>
+            <Table :columns="columns" :data="orderList" :height="pc_height" :loading="loading" ref="tableCsv"></Table>
             <div style="margin: 10px; padding-bottom: 1px; overflow: hidden" v-if="showPage">
                 <div style="float: right;">
                     <Page :total="total"
@@ -122,8 +124,6 @@
 
     import orderDetail from './order-detail';
 
-    import table2excel from '@/libs/table2excel.js';
-
     export default {
         name: 'new-order',
         components: {
@@ -135,9 +135,10 @@
                 total: 0,
                 page: 1,
                 pageSize: 10,
-                pageSizeOpts: [10, 20, 30, 50],
+                pageSizeOpts: [10, 20, 30, 50, 100],
                 order: 'created_at',
                 sort: 'desc',
+                fdate: '',
                 showPage: false,
                 loading: true,
                 searchLoading: true, // 搜索维修员
@@ -158,6 +159,7 @@
                     content: '描述不清晰。',
                     repair: ''
                 },
+                pc_height: 0,
                 types: [],
                 open_close: {
                     open: '开启',
@@ -351,10 +353,11 @@
                 selectMinRow: 1,
                 selectMaxRow: 100,
                 selectMinCol: 1,
-                selectMaxCol: 6,
+                selectMaxCol: 7,
             }
         },
         created() {
+            this.pc_height = document.body.clientHeight - 250;
             // 获取新工单
             this.getOrderList();
             // 获取工单类型
@@ -400,7 +403,9 @@
                     sort: _this.sort,
                     status: 0,
                     school_id: school_id,
-                    type: _this.orderType
+                    type: _this.orderType,
+                    startTime: _this.fdate[0] ? Date.parse(_this.fdate[0]) / 1000 : 0,
+                    endTime: _this.fdate[1] ? Date.parse(_this.fdate[1]) / 1000 : 0
                 };
                 axios.get(path + '/api/orders', {params}).then(response => {
                     _this.orderList = response.data.data;
@@ -491,21 +496,58 @@
             },
             exportData() {
                 const _this = this;
+
+                if (_this.total == 0) {
+                    this.$Message.warning('没有数据，无法导出工单。', 1.5);
+                    return false;
+                }
+
                 var orders = [];
                 _this.orderList.forEach((val) => {
                     orders.push({
-                        avatar: val.user.name,
+                        name: val.user.name,
                         order: val.order,
                         content: val.content,
                         area: val.area.name,
+                        address: val.address,
                         type: val.type.name,
-                        time: util.diffForHumans(val.created_at)
+                        time: val.created_at
                     });
                 });
 
+                const columns = [
+                    {
+                        'title': '申报用户',
+                        'key': 'name'
+                    },
+                    {
+                        'title': '工单号',
+                        'key': 'order'
+                    },
+                    {
+                        'title': '申报内容',
+                        'key': 'content'
+                    },
+                    {
+                        'title': '申报区域',
+                        'key': 'area'
+                    },
+                    {
+                        'title': '申报地点',
+                        'key': 'address'
+                    },
+                    {
+                        'title': '申报类型',
+                        'key': 'type'
+                    },
+                    {
+                        'title': '申报时间',
+                        'key': 'time'
+                    },
+                ];
                 _this.$refs.tableCsv.exportCsv({
-                    filename: _this.getDate() + ' 工单表',
-                    columns: _this.columns.filter((col, index) => index >= _this.selectMinCol - 1 && index <= _this.selectMaxCol - 1),
+                    filename: '待维修工单表',
+                    columns: columns.filter((col, index) => index >= _this.selectMinCol - 1 && index <= _this.selectMaxCol - 1),
                     data: orders.filter((data, index) => index >= _this.selectMinRow - 1 && index <= _this.selectMaxRow - 1)
                 });
             },

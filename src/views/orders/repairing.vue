@@ -147,6 +147,7 @@
                     },
                     {
                         key: 'avatar',
+                        width: 120,
                         title: '用户',
                         render: (h, params) => {
                             return h('div', [
@@ -212,6 +213,7 @@
                     {
                         key: 'repair',
                         title: '维修员',
+                        width: 120,
                         render: (h, params) => {
                             return h('div', [
                                 h('Avatar', {
@@ -228,7 +230,7 @@
                     {
                         key: 'ptime',
                         title: '派工时间',
-                        align: 'center',
+                        width: 120,
                         sortable: true,
                         render: (h, params) => {
                             return h('div', [
@@ -247,7 +249,7 @@
                         key: 'action',
                         title: '操作',
                         align: 'center',
-                        width: 180,
+                        width: 230,
                         render: (h, params) => {
                             return h('div', [
                                 h('Button', {
@@ -270,7 +272,7 @@
                                     props: {
                                         type: 'info',
                                         size: 'small',
-                                        icon: 'paper-airplane'
+                                        icon: 'shuffle'
                                     },
                                     style: {
                                         marginRight: '5px'
@@ -281,7 +283,31 @@
                                             this.dispatchModal = true;
                                         }
                                     }
-                                }, '派工')
+                                }, '改派'),
+                                h('Poptip', {
+                                    props: {
+                                        confirm: true,
+                                        title: '确定工单已经完成了吗?',
+                                        transfer: true
+                                    },
+                                    on: {
+                                        'on-ok': () => {
+                                            this.fixedOrder(params.row.id, params.row.repair_id, params.row.form_id, params.index)
+                                        }
+                                    }
+                                }, [
+                                    h('Button', {
+                                        style: {
+                                            marginRight: '5px'
+                                        },
+                                        props: {
+                                            type: 'primary',
+                                            size: 'small',
+                                            placement: 'top',
+                                            icon: 'wrench'
+                                        }
+                                    }, '完成')
+                                ])
                             ])
                         }
                     }
@@ -381,6 +407,24 @@
                 }).catch(error => {
                     this.$Message.error('系统出错，请稍后再试。');
                 })
+            },
+            fixedOrder(id, repair_id, form_id, index) {
+                const _this = this;
+                let formData = {
+                    'order_id': id,
+                    'user_id': repair_id,
+                    'form_id': form_id
+                };
+                axios.post(path + '/api/orders/fixedOrder', formData).then(response => {
+                    _this.$Message.success('操作成功');
+                    _this.remove(index);
+                }).catch(error => {
+                    _this.$Message.error('系统出错，请稍后再试。');
+                })
+            },
+            remove(index) {
+                this.total--;
+                this.orderList.splice(index, 1);
             },
         }
     };

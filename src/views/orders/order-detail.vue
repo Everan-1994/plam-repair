@@ -32,6 +32,9 @@
             </div>
 
             <p class="step-content">
+                <strong>申报地点：</strong>
+                <div v-html="address" class="_content"></div>
+
                 <strong>故障描述：</strong>
                 <div v-html="content" class="_content"></div>
 
@@ -94,6 +97,7 @@
                 name: '',
                 created_at: '',
                 content: '',
+                address: '',
                 phone: '',
                 processes: {},
                 evaluate: {},
@@ -132,6 +136,7 @@
                     _this.phone = detail.user.phone;
                     _this.created_at = util.diffForHumans(detail.created_at);
                     _this.content = detail.content;
+                    _this.address = detail.address;
                     _this.processes = detail.processes;
                     _this.evaluate = detail.evaluate;
                     _this.images = detail.images;

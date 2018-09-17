@@ -280,12 +280,18 @@
                     console.log(error);
                 })
             },
-            deleteMember(id) {
-
+            deleteMember(id, index) {
+                axios.delete(`${path}/api/member/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.remove(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('请先删除该用户的所有申报工单。' || '删除失败', 3);
+                });
             },
-//            remove(index) {
-//                this.memberList.splice(index, 1);
-//            },
+           remove(index) {
+               this.memberList.splice(index, 1);
+           },
             changeMemberStatus(id, value) {
                 this.$Modal.confirm({
                     title: '温馨提示',

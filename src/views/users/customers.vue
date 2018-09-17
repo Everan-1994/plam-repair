@@ -486,10 +486,10 @@
                     this.$Message.error('删除失败', 1.5);
                 })
             },
-            remove (index) {
-                this.schools.splice(index, 1);
-                this.total-- ;
-            },
+            // remove (index) {
+            //     this.schools.splice(index, 1);
+            //     this.total-- ;
+            // },
         }
     }
 </script>

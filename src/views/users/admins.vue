@@ -238,11 +238,17 @@
                 })
             },
             deleteMember(id) {
-
+                axios.delete(`${path}/api/member/${id}`).then(response => {
+                    this.$Message.success('删除成功', 1.5);
+                    this.remove(index);
+                }).catch(error => {
+                    console.log(error);
+                    this.$Message.error('删除失败', 1.5);
+                })
             },
-//            remove(index) {
-//                this.memberList.splice(index, 1);
-//            },
+           remove(index) {
+               this.memberList.splice(index, 1);
+           },
             changeMemberStatus(id, value) {
                 this.$Modal.confirm({
                     title: '温馨提示',
