@@ -97,6 +97,24 @@
                 },
                 columns: [
                     {
+                        key: 'avatar',
+                        title: '用户',
+                        fixed: 'left',
+                        width: 200,
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Avatar', {
+                                    props: {
+                                        src: params.row.user.avatar
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 10px;'
+                                }, params.row.user.name)
+                            ])
+                        }
+                    },
+                    {
                         key: 'order',
                         title: '工单号',
                         align: 'center',
@@ -115,19 +133,18 @@
                         }
                     },
                     {
-                        key: 'avatar',
-                        title: '用户',
-                        width: 200,
+                        key: 'content',
+                        title: '申报内容',
                         render: (h, params) => {
                             return h('div', [
-                                h('Avatar', {
+                                h('Icon', {
                                     props: {
-                                        src: params.row.user.avatar
+                                        type: 'compose'
                                     }
                                 }),
                                 h('span', {
-                                    style: 'margin-left: 10px;'
-                                }, params.row.user.name)
+                                    style: 'margin-left: 3px;'
+                                }, params.row.content)
                             ])
                         }
                     },
@@ -145,6 +162,22 @@
                                 h('span', {
                                     style: 'margin-left: 3px;'
                                 }, params.row.area.name)
+                            ])
+                        }
+                    },
+                    {
+                        key: 'address',
+                        title: '申报地址',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'android-pin'
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 3px;'
+                                }, params.row.address)
                             ])
                         }
                     },
@@ -177,6 +210,22 @@
                                 h('span', {
                                     style: 'margin-left: 3px;'
                                 }, util.diffForHumans(params.row.created_at))
+                            ])
+                        }
+                    },
+                    {
+                        key: 'processes',
+                        title: '驳回原因',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'backspace'
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 3px;'
+                                }, params.row.processes[0].content)
                             ])
                         }
                     },

@@ -1,5 +1,8 @@
 <style lang="less">
   @import '../../styles/common.less';
+  .mleft {
+    margin-left: 10px;
+  }
 </style>
 
 <template>
@@ -12,10 +15,14 @@
           用户列表
         </p>
         <Row>
-          <Col span="24">
-          <span style="">
-            <Button type="primary" style="float: right;" icon="android-sync"  @click="refresh">刷新</Button>
-          </span>
+          <Col span="24" style="text-align: center; margin-bottom: 10px;">
+            <span style="">
+                  <span>手机号：</span>
+                  <Input v-model="phone" placeholder="请输入手机号" style="width: 150px;"></Input>
+                  <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
+                  <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
+                  <!--<Button type="primary" class="mleft" icon="android-sync"  @click="refresh">刷新</Button>-->
+              </span>
           </Col>
         </Row>
         <Row class="margin-top-10">
@@ -72,6 +79,7 @@
                 pageSizeOpts: [10, 20, 30, 50],
                 order: '',
                 sort: '',
+                phone: null,
                 sex: ['男', '女'],
                 color: ['green', 'red'],
                 showPage: false,
@@ -248,6 +256,7 @@
                     order: _this.order,
                     sort: _this.sort,
                     identify: 5,
+                    phone: _this.phone,
                     school_id: Cookie.get('school_id')
                 };
                 axios.get(path + '/api/member', {params}).then(response => {
@@ -350,8 +359,15 @@
                     this.getMemberList();
                 })
             },
-            refresh() {
+            resetQuery() {
                 this.loading = true;
+                this.phone = null;
+                this.page = 1;
+                this.getMemberList();
+            },
+            query() {
+                this.loading = true;
+                this.page = 1;
                 this.getMemberList();
             }
         }

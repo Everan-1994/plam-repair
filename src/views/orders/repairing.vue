@@ -118,7 +118,16 @@
                 dispatchForm: {
                     repair_id: null, // 维修员id
                 },
+                fixedForm: {
+                    // select: null,
+                    content: null, // 回复内容
+                    repair_id: null,
+                    index: null,
+                    form_id: null,
+                    id: 0
+                },
                 dispatch: false, // 派工加载
+                fixeding: false, // 完工加载
                 types: [],
                 repairs: [],
                 truename: null,
@@ -127,6 +136,24 @@
                     close: '关闭'
                 },
                 columns: [
+                    {
+                        key: 'avatar',
+                        width: 120,
+                        title: '用户',
+                        fixed: 'left',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Avatar', {
+                                    props: {
+                                        src: params.row.user.avatar
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 10px;'
+                                }, params.row.user.name)
+                            ])
+                        }
+                    },
                     {
                         key: 'order',
                         title: '工单号',
@@ -146,19 +173,18 @@
                         }
                     },
                     {
-                        key: 'avatar',
-                        width: 120,
-                        title: '用户',
+                        key: 'content',
+                        title: '申报内容',
                         render: (h, params) => {
                             return h('div', [
-                                h('Avatar', {
+                                h('Icon', {
                                     props: {
-                                        src: params.row.user.avatar
+                                        type: 'compose'
                                     }
                                 }),
                                 h('span', {
-                                    style: 'margin-left: 10px;'
-                                }, params.row.user.name)
+                                    style: 'margin-left: 3px;'
+                                }, params.row.content)
                             ])
                         }
                     },
@@ -176,6 +202,22 @@
                                 h('span', {
                                     style: 'margin-left: 3px;'
                                 }, params.row.area.name)
+                            ])
+                        }
+                    },
+                    {
+                        key: 'address',
+                        title: '申报地址',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'android-pin'
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 3px;'
+                                }, params.row.address)
                             ])
                         }
                     },
@@ -249,6 +291,7 @@
                         key: 'action',
                         title: '操作',
                         align: 'center',
+                        fixed: 'right',
                         width: 230,
                         render: (h, params) => {
                             return h('div', [
@@ -413,7 +456,8 @@
                 let formData = {
                     'order_id': id,
                     'user_id': repair_id,
-                    'form_id': form_id
+                    'form_id': form_id,
+                    // 'content': _this.fixedForm.content || _this.fixedForm.select
                 };
                 axios.post(path + '/api/orders/fixedOrder', formData).then(response => {
                     _this.$Message.success('操作成功');
@@ -425,7 +469,7 @@
             remove(index) {
                 this.total--;
                 this.orderList.splice(index, 1);
-            },
+            }
         }
     };
 </script>

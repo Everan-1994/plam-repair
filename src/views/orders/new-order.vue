@@ -22,17 +22,17 @@
     <Col span="24">
         <Row>
             <Col span="24" style="text-align: center; margin-bottom: 10px;">
-            <span style="">
-                    <span>申报类型：</span>
-                    <Select v-model="orderType" style="width:100px">
-                        <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
-                    </Select>
-                    <span class="mleft">日期范围：</span>
-                    <DatePicker type="daterange" placement="bottom-end" v-model="fdate" placeholder="选择时间范围" style="width: 200px"></DatePicker>
-                    <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
-                    <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
-                    <Button type="primary" icon="share" class="mleft" @click="exportData">导出工单</Button>
-                </span>
+                <span style="">
+                        <span>申报类型：</span>
+                        <Select v-model="orderType" style="width:100px">
+                            <Option v-for="item in types" :value="item.id" :key="item.id">{{ item.name }}</Option>
+                        </Select>
+                        <span class="mleft">日期范围：</span>
+                        <DatePicker type="daterange" placement="bottom-end" v-model="fdate" placeholder="选择时间范围" style="width: 200px"></DatePicker>
+                        <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
+                        <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
+                        <Button type="primary" icon="share" class="mleft" @click="exportData">导出工单</Button>
+                    </span>
             </Col>
         </Row>
         <Row class="margin-top-10">
@@ -65,26 +65,26 @@
             <div slot="footer"></div>
         </Modal>
         <!--驳回-->
-        <Modal v-model="examineModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"
-               :styles="{top: '20px'}" :scrollable="false">
-            <p slot="header" style="color: #1F90CD;text-align: center">
-                <Icon type="edit"></Icon>
-                <span>驳回</span>
-            </p>
-            <div style="text-align:center">
-                <Form ref="examineForm" :model="examineForm">
-                    <Form-item>
-                        <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 10}"
-                               placeholder="填写驳回原因"></Input>
-                    </Form-item>
-                </Form>
-            </div>
-            <div slot="footer">
-                <Button type="primary" @click="rejectSubmit" icon="paper-airplane" size="large" long
-                        :loading="reject"> 提 交
-                </Button>
-            </div>
-        </Modal>
+        <!--<Modal v-model="examineModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"-->
+               <!--:styles="{top: '20px'}" :scrollable="false">-->
+            <!--<p slot="header" style="color: #1F90CD;text-align: center">-->
+                <!--<Icon type="edit"></Icon>-->
+                <!--<span>驳回</span>-->
+            <!--</p>-->
+            <!--<div style="text-align:center">-->
+                <!--<Form ref="examineForm" :model="examineForm">-->
+                    <!--<Form-item>-->
+                        <!--<Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 10}"-->
+                               <!--placeholder="填写驳回原因"></Input>-->
+                    <!--</Form-item>-->
+                <!--</Form>-->
+            <!--</div>-->
+            <!--<div slot="footer">-->
+                <!--<Button type="primary" @click="rejectSubmit" icon="paper-airplane" size="large" long-->
+                        <!--:loading="reject"> 提 交-->
+                <!--</Button>-->
+            <!--</div>-->
+        <!--</Modal>-->
         <!--派工-->
         <Modal v-model="dispatchModal" class-name="vertical-center-modal" :mask-closable="false" :width="350"
                :styles="{top: '20px'}" :scrollable="false">
@@ -110,6 +110,32 @@
             <div slot="footer">
                 <Button type="primary" @click="dispatchSubmit" icon="paper-airplane" size="large" long
                         :loading="dispatch"> 提 交
+                </Button>
+            </div>
+        </Modal>
+        <!--驳回-->
+        <Modal v-model="examineModal" class-name="vertical-center-modal" :mask-closable="false" :width="570"
+               :styles="{top: '20px'}" :scrollable="false"
+               @on-cancel="rejectOrderCancel">
+            <p slot="header" style="color:#4dcb25;text-align:center">
+                <Icon type="android-checkmark-circle"></Icon>
+                <span>驳回工单</span>
+            </p>
+            <Form :label-width="100">
+                <FormItem label="选项">
+                    <RadioGroup v-model="examineForm.select">
+                        <Radio label="报修地点不明，请完善。">报修地点不明，请完善。</Radio>
+                        <Radio label="无钥匙进行维修。">无钥匙进行维修。</Radio>
+                        <Radio label="恶意故意报修，不进行维修。">恶意故意报修，不进行维修。</Radio>
+                    </RadioGroup>
+                </FormItem>
+                <FormItem label="内容">
+                    <Input v-model="examineForm.content" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="自定义回复内容"></Input>
+                </FormItem>
+            </Form>
+            <div slot="footer">
+                <Button type="primary" @click="rejectSubmit" icon="paper-airplane" size="large" long
+                        :loading="reject"> 提 交
                 </Button>
             </div>
         </Modal>
@@ -149,6 +175,7 @@
                 truename: null, // 搜索的维修员名称
                 dispatchForm: {
                     repair_id: null, // 维修员id
+                    index: null
                 },
                 repairs: [], // 维修员
                 orderType: null,
@@ -156,8 +183,10 @@
                 reject: false, //  驳回加载
                 dispatch: false, // 派工加载
                 examineForm: {
-                    content: '描述不清晰。',
-                    repair: ''
+                    index: null,
+                    content: null,
+                    repair: null,
+                    select: null
                 },
                 pc_height: 0,
                 types: [],
@@ -235,6 +264,22 @@
                         }
                     },
                     {
+                        key: 'address',
+                        title: '申报地址',
+                        render: (h, params) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        type: 'android-pin'
+                                    }
+                                }),
+                                h('span', {
+                                    style: 'margin-left: 3px;'
+                                }, params.row.address)
+                            ])
+                        }
+                    },
+                    {
                         key: 'type',
                         title: '申报类型',
                         align: 'center',
@@ -270,6 +315,7 @@
                         key: 'action',
                         title: '操作',
                         align: 'center',
+                        fixed: 'right',
                         width: 300,
                         render: (h, params) => {
                             return h('div', [
@@ -300,11 +346,28 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.id = params.row.id;
                                             this.examineModal = true;
+                                            this.id = params.row.id;
+                                            this.examineForm.index = params.index;
                                         }
                                     }
                                 }, '驳回'),
+                                // h('Button', {
+                                //     props: {
+                                //         type: 'warning',
+                                //         size: 'small',
+                                //         icon: 'close-circled'
+                                //     },
+                                //     style: {
+                                //         marginRight: '5px'
+                                //     },
+                                //     on: {
+                                //         click: () => {
+                                //             this.id = params.row.id;
+                                //             this.examineModal = true;
+                                //         }
+                                //     }
+                                // }, '驳回'),
                                 h('Button', {
                                     props: {
                                         type: 'info',
@@ -318,6 +381,7 @@
                                         click: () => {
                                             this.id = params.row.id;
                                             this.dispatchModal = true;
+                                            this.examineForm.index = params.index;
                                         }
                                     }
                                 }, '派工'),
@@ -452,15 +516,19 @@
             rejectSubmit() {
                 let formData = {
                     order_id: this.id,
-                    content: this.examineForm.content,
-                    type: 1
+                    content: this.examineForm.content || this.examineForm.select,
+                    type: 1,
                 };
                 axios.put(path + '/api/processes', formData).then(response => {
                     this.$Message.success('驳回成功');
-                    this.examineForm.content = '';
+                    this.remove(this.examineForm.index);
+                    this.examineForm.content = null;
+                    this.examineForm.select = null;
+                    this.examineForm.index = null;
                     this.examineModal = false;
+                    this.id = 0;
                     this.reject = false;
-                    this.getOrderList();
+                    // this.getOrderList();
                 }).catch(error => {
                     this.$Message.error('系统出错，请稍后再试。');
                 })
@@ -472,11 +540,13 @@
                 };
                 axios.post(path + '/api/dispatch', formData).then(response => {
                     this.$Message.success('派工成功');
+                    this.remove(this.examineForm.index);
                     this.dispatchForm.id = 0;
+                    this.dispatchForm.index = null;
                     this.repair_id = 0;
                     this.dispatchModal = false;
                     this.dispatch = false;
-                    this.getOrderList();
+                    // this.getOrderList();
                 }).catch(error => {
                     this.$Message.error('系统出错，请稍后再试。');
                 })
@@ -562,6 +632,12 @@
                 d = d < 10 ? "0" + d : d;
                 let day = y + "-" + m + "-" + d;
                 return day;
+            },
+            rejectOrderCancel() {
+                this.id = 0;
+                this.examineForm.index = null;
+                this.examineForm.select = null;
+                this.examineForm.content = null;
             },
         }
     };

@@ -1,5 +1,8 @@
 <style lang="less">
   @import '../../styles/common.less';
+  .mleft {
+    margin-left: 10px;
+  }
 </style>
 
 <template>
@@ -12,9 +15,13 @@
           维修员列表
         </p>
         <Row>
-          <Col span="24">
+          <Col span="24" style="text-align: center; margin-bottom: 10px;">
           <span style="">
-            <Button type="primary" style="float: right;" icon="android-sync"  @click="refresh">刷新</Button>
+            <span>手机号：</span>
+                  <Input v-model="phone" placeholder="请输入手机号" style="width: 150px;"></Input>
+                  <Button type="info" icon="search" class="mleft" @click="query">查询</Button>
+                  <Button type="default" icon="android-sync" class="mleft" @click="resetQuery">重置查询</Button>
+            <!--<Button type="primary" style="float: right;" icon="android-sync"  @click="refresh">刷新</Button>-->
           </span>
           </Col>
         </Row>
@@ -58,6 +65,7 @@
                 pageSizeOpts: [10, 20, 30, 50],
                 order: '',
                 sort: '',
+                phone: null,
                 showPage: false,
                 loading: true,
                 sex: ['男', '女'],
@@ -232,6 +240,7 @@
                     order: _this.order,
                     sort: _this.sort,
                     identify: 4,
+                    phone: _this.phone,
                     school_id: Cookie.get('school_id')
                 };
                 axios.get(path + '/api/member', {params}).then(response => {
@@ -318,8 +327,15 @@
                     this.getRepairmansList();
                 })
             },
-            refresh() {
+            resetQuery() {
                 this.loading = true;
+                this.phone = null;
+                this.page = 1;
+                this.getRepairmansList();
+            },
+            query() {
+                this.loading = true;
+                this.page = 1;
                 this.getRepairmansList();
             }
         }
