@@ -415,7 +415,7 @@
                 ],
                 orderList: [],
                 selectMinRow: 1,
-                selectMaxRow: 100,
+                selectMaxRow: 3000,
                 selectMinCol: 1,
                 selectMaxCol: 7,
             }
@@ -511,6 +511,7 @@
                 this.loading = true;
                 this.page = 1;
                 this.orderType = null;
+                this.fdate = '';
                 this.getOrderList();
             },
             rejectSubmit() {
